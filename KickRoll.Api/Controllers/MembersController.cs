@@ -133,6 +133,59 @@ public class MembersController : ControllerBase
       return Ok(members);
    }
 
+   [HttpPost]
+   public async Task<IActionResult> CreateMember([FromBody] Member member)
+   {
+      if (string.IsNullOrWhiteSpace(member.Name))
+      {
+         return BadRequest(new { error = "姓名不可空白" });
+      }
+
+      // Basic email validation - check if it contains @ and has some structure
+      if (!string.IsNullOrWhiteSpace(member.Phone) && !IsValidEmail(member.Phone))
+      {
+         return BadRequest(new { error = "Email 格式不正確" });
+      }
+
+      try
+      {
+         // Generate new document ID
+         var newDocRef = _db.Collection("members").Document();
+         
+         var newMember = new Dictionary<string, object>
+         {
+            ["name"] = member.Name,
+            ["phone"] = member.Phone ?? "",
+            ["gender"] = member.Gender ?? "",
+            ["status"] = member.Status ?? "active",
+            ["teamId"] = member.TeamId ?? "",
+            ["teamIds"] = member.TeamIds ?? new List<string>(),
+            ["birthdate"] = member.Birthdate ?? DateTime.UtcNow
+         };
+
+         await newDocRef.SetAsync(newMember);
+
+         return Ok(new { success = true, memberId = newDocRef.Id, message = "成員新增成功" });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"新增成員失敗：{ex.Message}" });
+      }
+   }
+
+   private bool IsValidEmail(string email)
+   {
+      try
+      {
+         var addr = new System.Net.Mail.MailAddress(email);
+         return addr.Address == email;
+      }
+      catch
+      {
+         return false;
+      }
+   }
+
    [HttpGet("{memberId}")]
    public async Task<IActionResult> GetMember(string memberId)
    {
