@@ -1,0 +1,52 @@
+name: ✨ 功能需求
+description: 提出新功能或改善建議
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        請以使用者故事描述需求，並提供清楚的驗收條件。Copilot Agent 可依據這些條件實作並開 PR。
+
+  - type: input
+    id: user_story
+    attributes:
+      label: 使用者故事（User Story）
+      placeholder: 作為一名使用者，我想要...，因此我可以...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 範圍（Scope）
+      description: 明確指出會動到的模組/檔案類型
+      placeholder: apps: KickRoll.App/**；api: KickRoll.Api/**
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 驗收條件（Acceptance Criteria）
+      placeholder: |
+        - 提供 Email 登入頁（含驗證）
+        - API /auth/login 端點，回傳 JWT（有效 1 小時）
+        - 單元測試 + Swagger 範例
+        - CI 綠燈
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: 非目標（Non-goals）
+      description: 確認本次不做哪些事，避免過度擴張
+      placeholder: 不含第三方登入；不改動資料庫架構
+
+  - type: textarea
+    id: design
+    attributes:
+      label: 參考設計/文件連結
+      placeholder: Figma/設計規範、API 規格、相依 Issue/PR 連結等

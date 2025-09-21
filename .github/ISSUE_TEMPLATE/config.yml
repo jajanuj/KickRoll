@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 專案規範（Copilot Instructions）
+    url: https://github.com/<org-or-user>/<repo>/blob/main/.github/copilot-instructions.md
+    about: 請先閱讀專案規範與建置/測試方法

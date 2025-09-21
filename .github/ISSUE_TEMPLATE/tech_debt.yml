@@ -1,0 +1,32 @@
+name: 🧹 技術債 / 重構
+description: 清理代碼、改善結構或效能
+title: "[Refactor]: "
+labels: ["refactor", "tech-debt"]
+assignees: []
+body:
+  - type: textarea
+    id: rationale
+    attributes:
+      label: 動機 / 影響
+      placeholder: 移除重複樣板、提升可測試性、降低 APK 體積...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 範圍與風險
+      placeholder: 受影響模組/檔案、相容性風險與回滾策略
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 驗收條件（Acceptance Criteria）
+      placeholder: |
+        - 維持功能不變
+        - 建置時間降低 10%
+        - CI 綠燈，無行為變更測試失敗
+    validations:
+      required: true

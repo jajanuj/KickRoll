@@ -1,0 +1,89 @@
+name: 🐞 Bug 回報
+description: 回報在 KickRoll.App / KickRoll.Api 中發現的問題
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        請盡量提供完整重現步驟與環境資訊。Copilot Agent 將依此資訊自動建立修復 PR。
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影響範圍
+      options:
+        - KickRoll.App（.NET MAUI）
+        - KickRoll.Api（ASP.NET Core API）
+        - 兩者皆有
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 問題摘要
+      description: 以一句話說明問題現象
+      placeholder: 例如：在 Android 上日期加一天
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: 重現步驟
+      description: 請逐步描述如何重現
+      placeholder: |
+        1. 開啟 ...
+        2. 點擊 ...
+        3. 看到 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 預期行為
+      placeholder: 應顯示正確日期，且不因時區跳日
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 實際行為
+      placeholder: 目前顯示為翌日
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: 裝置 / 作業系統版本
+      placeholder: Android 14 / Windows 11 / iOS 17 ...
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日誌 / 例外堆疊
+      description: 可貼上相關 Logs 或附檔連結（如需）
+      render: shell
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 驗收條件（Acceptance Criteria）
+      description: 務必明確；Copilot Agent 將照此完成與驗證
+      placeholder: |
+        - 在 Android 14、Windows 上日期不+1
+        - 單元測試覆蓋 edge cases（UTC+8、DST）
+        - CI 綠燈
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前檢查
+      options:
+        - label: 我已檢查是否為已知問題或重複 Issue
+        - label: 我已附上必要的截圖/錄影（若為 UI 問題）
