@@ -77,6 +77,7 @@ public partial class EditMemberPage : ContentPage
             Phone = PhoneEntry.Text,
             Gender = GenderPicker.SelectedItem?.ToString() ?? "",
             Status = StatusPicker.SelectedItem?.ToString() ?? "active",
+            TeamId = selectedTeams[0],
             TeamIds = selectedTeams,
             Birthdate = DateTime.SpecifyKind(BirthdatePicker.Date, DateTimeKind.Utc)
          };
