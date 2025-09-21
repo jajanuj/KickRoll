@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace KickRoll.App.Views;
 
@@ -80,18 +81,41 @@ public partial class AddMemberPage : ContentPage
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
                 ResultLabel.TextColor = Colors.Red;
-                ResultLabel.Text = $"❌ 新增失敗：{response.StatusCode}";
-                if (!string.IsNullOrEmpty(errorContent))
+                
+                try
                 {
-                    try
+                    // Try to parse JSON error response
+                    var errorResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(errorContent);
+                    
+                    if (errorResponse.TryGetProperty("error", out var errorMessage))
                     {
-                        var errorObj = System.Text.Json.JsonSerializer.Deserialize<dynamic>(errorContent);
-                        ResultLabel.Text = $"❌ {errorObj}";
+                        ResultLabel.Text = $"❌ {errorMessage.GetString()}";
                     }
-                    catch
+                    else if (errorResponse.TryGetProperty("errors", out var validationErrors))
                     {
-                        // Use status code if can't parse error
+                        // Handle validation errors from API
+                        var errorMessages = new List<string>();
+                        foreach (var error in validationErrors.EnumerateObject())
+                        {
+                            if (error.Value.ValueKind == JsonValueKind.Array)
+                            {
+                                foreach (var message in error.Value.EnumerateArray())
+                                {
+                                    errorMessages.Add(message.GetString() ?? "");
+                                }
+                            }
+                        }
+                        ResultLabel.Text = $"❌ {string.Join(", ", errorMessages)}";
                     }
+                    else
+                    {
+                        ResultLabel.Text = $"❌ 新增失敗：{response.StatusCode}";
+                    }
+                }
+                catch
+                {
+                    // If JSON parsing fails, show generic error
+                    ResultLabel.Text = $"❌ 新增失敗：{response.StatusCode}";
                 }
             }
         }

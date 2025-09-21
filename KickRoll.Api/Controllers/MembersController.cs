@@ -17,6 +17,17 @@ public class Member
    [FirestoreProperty] public DateTime? Birthdate { get; set; }
 }
 
+public class CreateMemberRequest
+{
+   public string Name { get; set; }
+   public string Phone { get; set; }
+   public string? Gender { get; set; }
+   public string? Status { get; set; }
+   public string? TeamId { get; set; }
+   public List<string>? TeamIds { get; set; }
+   public DateTime? Birthdate { get; set; }
+}
+
 [ApiController]
 [Route("api/[controller]")]
 public class MembersController : ControllerBase
@@ -135,15 +146,15 @@ public class MembersController : ControllerBase
    }
 
    [HttpPost]
-   public async Task<IActionResult> CreateMember([FromBody] Member member)
+   public async Task<IActionResult> CreateMember([FromBody] CreateMemberRequest request)
    {
-      if (string.IsNullOrWhiteSpace(member.Name))
+      if (string.IsNullOrWhiteSpace(request.Name))
       {
          return BadRequest(new { error = "姓名不可空白" });
       }
 
       // Basic email validation - check if it contains @ and has some structure
-      if (!string.IsNullOrWhiteSpace(member.Phone) && !IsValidEmail(member.Phone))
+      if (!string.IsNullOrWhiteSpace(request.Phone) && !IsValidEmail(request.Phone))
       {
          return BadRequest(new { error = "Email 格式不正確" });
       }
@@ -155,13 +166,13 @@ public class MembersController : ControllerBase
          
          var newMember = new Dictionary<string, object>
          {
-            ["name"] = member.Name,
-            ["phone"] = member.Phone ?? "",
-            ["gender"] = member.Gender ?? "",
-            ["status"] = member.Status ?? "active",
-            ["teamId"] = member.TeamId ?? "",
-            ["teamIds"] = member.TeamIds ?? new List<string>(),
-            ["birthdate"] = member.Birthdate ?? DateTime.UtcNow
+            ["name"] = request.Name,
+            ["phone"] = request.Phone ?? "",
+            ["gender"] = request.Gender ?? "",
+            ["status"] = request.Status ?? "active",
+            ["teamId"] = request.TeamId ?? "",
+            ["teamIds"] = request.TeamIds ?? new List<string>(),
+            ["birthdate"] = request.Birthdate ?? DateTime.UtcNow
          };
 
          await newDocRef.SetAsync(newMember);
