@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.MemberDetailPage"
+             Title="成員詳情">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <!-- 成員基本資訊 -->
+            <Frame BorderColor="Gray" CornerRadius="8" Padding="15" BackgroundColor="LightGray">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="成員資訊" FontSize="18" FontAttributes="Bold" />
+                    <Label Text="{Binding Name, StringFormat='姓名: {0}'}" />
+                    <Label Text="{Binding Phone, StringFormat='電話: {0}'}" />
+                    <Label Text="{Binding Gender, StringFormat='性別: {0}'}" />
+                    <Label Text="{Binding Status, StringFormat='狀態: {0}'}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- 已加入課程 -->
+            <Frame BorderColor="DarkBlue" CornerRadius="8" Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="已加入的課程" FontSize="18" FontAttributes="Bold" TextColor="DarkBlue" />
+                    <CollectionView x:Name="EnrolledCoursesCollection" ItemsSource="{Binding EnrolledCourses}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BorderColor="LightBlue" CornerRadius="5" Padding="10" Margin="0,2">
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
+                                        <Label Text="{Binding Description}" FontSize="14" TextColor="Gray" />
+                                        <Label Text="{Binding JoinedAt, StringFormat='加入時間: {0:yyyy/MM/dd}'}" 
+                                               FontSize="12" TextColor="DarkGray" />
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="尚未加入任何課程" TextColor="Gray" HorizontalOptions="Center" />
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- 可加入課程 -->
+            <Frame BorderColor="DarkGreen" CornerRadius="8" Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="可加入的課程" FontSize="18" FontAttributes="Bold" TextColor="DarkGreen" />
+                    <CollectionView x:Name="AvailableCoursesCollection" ItemsSource="{Binding AvailableCourses}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BorderColor="LightGreen" CornerRadius="5" Padding="10" Margin="0,2">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <VerticalStackLayout Grid.Column="0">
+                                            <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
+                                            <Label Text="{Binding Description}" FontSize="14" TextColor="Gray" />
+                                            <Label Text="{Binding Capacity, StringFormat='容量: {0} 人'}" 
+                                                   FontSize="12" TextColor="DarkGray" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="1" 
+                                                Text="加入" 
+                                                BackgroundColor="Green" 
+                                                TextColor="White"
+                                                VerticalOptions="Center"
+                                                CommandParameter="{Binding CourseId}"
+                                                Clicked="OnJoinCourseClicked" />
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="沒有可加入的課程" TextColor="Gray" HorizontalOptions="Center" />
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- 編輯按鈕 -->
+            <Button Text="編輯成員資訊" Clicked="OnEditMemberClicked" BackgroundColor="DarkBlue" TextColor="White" />
+
+            <!-- 狀態訊息 -->
+            <Label x:Name="StatusLabel" TextColor="Red" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

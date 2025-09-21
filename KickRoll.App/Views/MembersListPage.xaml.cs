@@ -54,7 +54,7 @@ public partial class MembersListPage : ContentPage
 
             if (member != null)
             {
-               await Navigation.PushAsync(new EditMemberPage(member));
+               await Navigation.PushAsync(new MemberDetailPage(member));
             }
          }
          catch (Exception ex)
