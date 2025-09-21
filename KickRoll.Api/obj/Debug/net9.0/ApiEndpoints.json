@@ -1,0 +1,18 @@
+[
+  {
+    "ContainingType": "KickRoll.Api.Controllers.TeamsController",
+    "Method": "CreateTeam",
+    "RelativePath": "api/Teams",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "team",
+        "Type": "KickRoll.Api.Models.Team",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

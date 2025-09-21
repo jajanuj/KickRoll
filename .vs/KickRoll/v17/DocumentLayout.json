@@ -1,0 +1,166 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\kr\\KickRoll\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|d:\\kr\\kickroll\\kickroll.app\\views\\memberslistpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|solutionrelative:kickroll.app\\views\\memberslistpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|d:\\kr\\kickroll\\kickroll.app\\views\\memberslistpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|solutionrelative:kickroll.app\\views\\memberslistpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|d:\\kr\\kickroll\\kickroll.app\\views\\editmemberpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|solutionrelative:kickroll.app\\views\\editmemberpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8580CD31-7F20-47FB-A9B2-83F5FDE69B74}|KickRoll.Api\\KickRoll.Api.csproj|d:\\kr\\kickroll\\kickroll.api\\controllers\\memberscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8580CD31-7F20-47FB-A9B2-83F5FDE69B74}|KickRoll.Api\\KickRoll.Api.csproj|solutionrelative:kickroll.api\\controllers\\memberscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|d:\\kr\\kickroll\\kickroll.app\\views\\editmemberpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|solutionrelative:kickroll.app\\views\\editmemberpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|d:\\kr\\kickroll\\kickroll.app\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|solutionrelative:kickroll.app\\mauiprogram.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|d:\\kr\\kickroll\\kickroll.app\\platforms\\windows\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|solutionrelative:kickroll.app\\platforms\\windows\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|d:\\kr\\kickroll\\kickroll.app\\platforms\\windows\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{E5F73DCF-F2C3-46B2-AF57-3EF553770E33}|KickRoll.App\\KickRoll.App.csproj|solutionrelative:kickroll.app\\platforms\\windows\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "EditMemberPage.xaml",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\EditMemberPage.xaml",
+              "RelativeDocumentMoniker": "KickRoll.App\\Views\\EditMemberPage.xaml",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\EditMemberPage.xaml",
+              "RelativeToolTip": "KickRoll.App\\Views\\EditMemberPage.xaml",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAAcAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-09-20T14:40:36.135Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "EditMemberPage.xaml.cs",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\EditMemberPage.xaml.cs",
+              "RelativeDocumentMoniker": "KickRoll.App\\Views\\EditMemberPage.xaml.cs",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\EditMemberPage.xaml.cs",
+              "RelativeToolTip": "KickRoll.App\\Views\\EditMemberPage.xaml.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAAwCAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-20T14:23:03.298Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MembersListPage.xaml",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\MembersListPage.xaml",
+              "RelativeDocumentMoniker": "KickRoll.App\\Views\\MembersListPage.xaml",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\MembersListPage.xaml",
+              "RelativeToolTip": "KickRoll.App\\Views\\MembersListPage.xaml",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAiwBQAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-09-20T13:20:04.96Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MembersListPage.xaml.cs",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\MembersListPage.xaml.cs",
+              "RelativeDocumentMoniker": "KickRoll.App\\Views\\MembersListPage.xaml.cs",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.App\\Views\\MembersListPage.xaml.cs",
+              "RelativeToolTip": "KickRoll.App\\Views\\MembersListPage.xaml.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAUwCUAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-20T14:21:39.763Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MembersController.cs",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.Api\\Controllers\\MembersController.cs",
+              "RelativeDocumentMoniker": "KickRoll.Api\\Controllers\\MembersController.cs",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.Api\\Controllers\\MembersController.cs",
+              "RelativeToolTip": "KickRoll.Api\\Controllers\\MembersController.cs",
+              "ViewState": "AgIAAIoAAAAAAAAAAAAuwJ4AAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-20T14:18:48.848Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "MauiProgram.cs",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.App\\MauiProgram.cs",
+              "RelativeDocumentMoniker": "KickRoll.App\\MauiProgram.cs",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.App\\MauiProgram.cs",
+              "RelativeToolTip": "KickRoll.App\\MauiProgram.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAAwBwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-20T14:09:52.783Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.App\\Platforms\\Windows\\App.xaml.cs",
+              "RelativeDocumentMoniker": "KickRoll.App\\Platforms\\Windows\\App.xaml.cs",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.App\\Platforms\\Windows\\App.xaml.cs",
+              "RelativeToolTip": "KickRoll.App\\Platforms\\Windows\\App.xaml.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAA0AAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-20T14:00:16.947Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "App.xaml",
+              "DocumentMoniker": "D:\\kr\\KickRoll\\KickRoll.App\\Platforms\\Windows\\App.xaml",
+              "RelativeDocumentMoniker": "KickRoll.App\\Platforms\\Windows\\App.xaml",
+              "ToolTip": "D:\\kr\\KickRoll\\KickRoll.App\\Platforms\\Windows\\App.xaml",
+              "RelativeToolTip": "KickRoll.App\\Platforms\\Windows\\App.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-09-20T14:00:12.903Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 3716,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{a80febb4-e7e0-4147-b476-21aaf2453969}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

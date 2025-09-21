@@ -1,0 +1,83 @@
+# User-specific files
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows Installer
+*.vssscc
+*.vsscc
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Dd]ist/
+[Dd]istfiles/
+[Dd]ebug/ios/
+[Dd]ebug/android/
+[Dd]ebug/maccatalyst/
+[Dd]ebug/uwp/
+[Dd]ebug/win32/
+[Dd]ebug/x64/
+[Dd]ebug/x86/
+[Dd]ebug/arm/
+[Dd]ebug/arm64/
+
+[Dd]ebug/ios/ipa/
+[Dd]ebug/android/gradle/
+
+# User-specific files for Xamarin
+.idea/
+.vscode/
+*.user
+*.userosscache
+*.suo
+
+# User-specific files for MAUI
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.nupkg
+
+# Windows Package and Visual Studio temporary files
+.vs/
+.vscode/
+.idea/
+
+# App specific
+bin/
+obj/
+
+# JetBrains Rider files
+.idea/
+
+# VS for Mac files
+.vscode/
+.idea/
+.vs/
+
+# Xamarin Studio files
+.idea/
+
+# Android Studio files
+.gradle/
+build/
+
+# iOS & macOS specific files
+ios/
+macos/
