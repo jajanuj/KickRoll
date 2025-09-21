@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.SessionDetailPage"
+             Title="課表詳情">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+
+            <Label Text="{Binding TeamName}" FontSize="24" FontAttributes="Bold" />
+            <Label Text="📍 地點：" FontAttributes="Bold"/>
+            <Label Text="{Binding Location}" />
+
+            <Label Text="🕒 開始時間：" FontAttributes="Bold"/>
+            <Label Text="{Binding StartAt}" />
+
+            <Label Text="🕒 結束時間：" FontAttributes="Bold"/>
+            <Label Text="{Binding EndAt}" />
+
+            <Label Text="👥 人數上限：" FontAttributes="Bold"/>
+            <Label Text="{Binding Capacity}" />
+
+            <Label Text="📌 狀態：" FontAttributes="Bold"/>
+            <Label Text="{Binding Status}" TextColor="Green"/>
+
+            <Label Text="--- 點名 ---" FontSize="20" FontAttributes="Bold" />
+
+            <CollectionView x:Name="MembersCollection"
+                            IsVisible="False">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <HorizontalStackLayout>
+                            <Label Text="{Binding Name}" VerticalOptions="Center" />
+                            <CheckBox IsChecked="{Binding IsPresent}" />
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- 沒有成員時顯示 -->
+            <Label x:Name="NoMembersLabel"
+                   Text="⚠️ 此隊伍尚無成員"
+                   TextColor="OrangeRed"
+                   FontAttributes="Bold"
+                   IsVisible="False"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <Button Text="提交點名" Clicked="OnSubmitAttendanceClicked" />
+            <Label x:Name="ResultLabel" TextColor="Red" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

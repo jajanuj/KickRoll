@@ -1,0 +1,14 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.AddTeamPage"
+             Title="新增隊別">
+
+    <VerticalStackLayout Padding="20" Spacing="10">
+        <Entry x:Name="TeamNameEntry" Placeholder="隊名" />
+        <Entry x:Name="LocationEntry" Placeholder="地點" />
+        <Entry x:Name="CapacityEntry" Placeholder="人數上限" Keyboard="Numeric"/>
+        <Editor x:Name="ScheduleHintsEditor" Placeholder="課表提示 (例：每週二四 18:00)" />
+        <Button Text="建立隊別" Clicked="OnCreateTeamClicked"/>
+        <Label x:Name="ResultLabel" TextColor="Green" />
+    </VerticalStackLayout>
+</ContentPage>

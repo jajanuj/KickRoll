@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.EditMemberPage"
+             Title="編輯成員">
+
+    <VerticalStackLayout Padding="20" Spacing="10">
+        <Entry x:Name="NameEntry" Placeholder="姓名" />
+        <Entry x:Name="PhoneEntry" Placeholder="電話" Keyboard="Telephone" />
+        <DatePicker x:Name="BirthdatePicker" />
+
+        <Picker x:Name="GenderPicker" Title="性別">
+            <Picker.Items>
+                <x:String>M</x:String>
+                <x:String>F</x:String>
+            </Picker.Items>
+        </Picker>
+
+        <Picker x:Name="StatusPicker" Title="狀態">
+            <Picker.Items>
+                <x:String>active</x:String>
+                <x:String>inactive</x:String>
+            </Picker.Items>
+        </Picker>
+
+        <Label Text="所屬隊伍：" />
+        <CollectionView x:Name="TeamsCollection">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding IsSelected}" />
+                        <Label Text="{Binding Name}" VerticalOptions="Center" />
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Text="儲存成員" Clicked="OnSaveMemberClicked" />
+        <Label x:Name="ResultLabel" TextColor="Red"/>
+    </VerticalStackLayout>
+</ContentPage>

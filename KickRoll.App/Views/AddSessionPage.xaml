@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.AddSessionPage"
+             Title="新增課表">
+
+    <VerticalStackLayout Padding="20" Spacing="10">
+        <Picker x:Name="TeamPicker" Title="選擇隊伍" ItemDisplayBinding="{Binding Name}" />
+        <DatePicker x:Name="StartDatePicker" />
+        <TimePicker x:Name="StartTimePicker" />
+        <TimePicker x:Name="EndTimePicker" />
+        <Entry x:Name="LocationEntry" Placeholder="地點" />
+        <Entry x:Name="CapacityEntry" Placeholder="人數上限" Keyboard="Numeric"/>
+        <Button Text="建立課表" Clicked="OnCreateSessionClicked" />
+        <Label x:Name="ResultLabel" TextColor="Green" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.MembersListPage"
+             Title="成員列表">
+
+    <VerticalStackLayout Padding="20" Spacing="10">
+        <CollectionView x:Name="MembersCollection" SelectionMode="Single" SelectionChanged="OnMemberSelected">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BorderColor="Gray" CornerRadius="8" Padding="10" Margin="0,5">
+                        <VerticalStackLayout>
+                            <!-- 姓名 -->
+                            <Label Text="{Binding Name, TargetNullValue='(未命名)', FallbackValue='(未命名)'}"
+                                   FontSize="18" FontAttributes="Bold"/>
+
+                            <!-- 狀態 -->
+                            <Label Text="{Binding Status, TargetNullValue='unknown', FallbackValue='unknown'}"
+                                   FontSize="14" TextColor="Gray"/>
+
+                            <!-- ✅ 顯示所屬隊伍 (逗號分隔) -->
+                            <Label Text="{Binding TeamNames, TargetNullValue='(未分配隊伍)', FallbackValue='(未分配隊伍)'}"
+                                   FontSize="14" TextColor="DarkSlateBlue"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Label x:Name="ResultLabel" TextColor="Red"/>
+    </VerticalStackLayout>
+</ContentPage>
+
