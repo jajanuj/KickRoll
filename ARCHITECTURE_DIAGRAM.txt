@@ -1,0 +1,84 @@
+```
+Member Join Course Feature - Architecture Diagram
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             MAUI Application                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  MembersListPage.xaml                                                       │
+│  ┌─────────────┐  Click   ┌─────────────────────────────────────────────┐   │
+│  │   Member    │ ─────── ►│           MemberDetailPage                  │   │
+│  │   List      │          │                                            │   │
+│  │             │          │  ┌─────────────────┐ ┌──────────────────┐   │   │
+│  │             │          │  │   Member Info   │ │ Enrolled Courses │   │   │
+│  └─────────────┘          │  └─────────────────┘ └──────────────────┘   │   │
+│                          │                                            │   │
+│                          │  ┌─────────────────────────────────────────┐   │   │
+│                          │  │     Available Courses                   │   │   │
+│                          │  │  ┌─────────────┐ ┌─────────────────────┐ │   │   │
+│                          │  │  │  Course A   │ │     [Join] Button   │ │   │   │
+│                          │  │  └─────────────┘ └─────────────────────┘ │   │   │
+│                          │  └─────────────────────────────────────────┘   │   │
+│                          └─────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                           │
+                                          │ HTTP API Calls
+                                          │
+┌─────────────────────────────────────────▼───────────────────────────────────┐
+│                            KickRoll.Api                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  CoursesController.cs                                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ GET  /api/courses/list            → Get all courses                 │   │
+│  │ GET  /api/courses/{id}            → Get course details              │   │
+│  │ POST /api/courses/{id}/members/{memberId} → Join course             │   │
+│  │ GET  /api/courses/members/{memberId} → Get member courses           │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Models/Course.cs                                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ CourseId, Name, Description, Capacity, Status, etc.                │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                           │
+                                          │ Firestore SDK
+                                          │
+┌─────────────────────────────────────────▼───────────────────────────────────┐
+│                            Google Firestore                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  courses/                                                                   │
+│  ├── course-001/                                                            │
+│  │   ├── name: "足球基礎班"                                                   │
+│  │   ├── description: "適合初學者..."                                         │
+│  │   ├── capacity: 20                                                       │
+│  │   └── status: "Active"                                                   │
+│  └── course-002/ ...                                                        │
+│                                                                             │
+│  members/                                                                   │
+│  ├── member-123/                                                            │
+│  │   ├── courses/                    ← Member-Course Relationships          │
+│  │   │   ├── course-001/                                                    │
+│  │   │   │   ├── CourseId: "course-001"                                     │
+│  │   │   │   ├── JoinedAt: "2024-01-10T10:30:00Z"                         │
+│  │   │   │   └── Status: "Active"                                           │
+│  │   │   └── course-002/ ...                                               │
+│  │   └── (other member fields)                                             │
+│  └── member-456/ ...                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Feature Flow:
+1. User selects member from MembersListPage
+2. Navigate to MemberDetailPage showing member info and courses
+3. MemberDetailPage loads enrolled courses and available courses via API
+4. User clicks "Join" button on available course
+5. API validates member/course existence and prevents duplicates
+6. Creates enrollment record in Firestore subcollection
+7. UI updates to show course in enrolled section
+8. Success message displayed to user
+
+Validation & Error Handling:
+✅ Member ID and Course ID validation
+✅ Duplicate enrollment prevention  
+✅ Member/Course existence checks
+✅ User-friendly error messages
+✅ Loading states and visual feedback
+```
