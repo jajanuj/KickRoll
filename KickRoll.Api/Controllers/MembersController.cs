@@ -1,5 +1,6 @@
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mail;
 
 namespace KickRoll.Api.Controllers;
 
