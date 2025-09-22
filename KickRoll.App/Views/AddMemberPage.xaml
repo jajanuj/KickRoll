@@ -11,9 +11,9 @@
         <Entry x:Name="NameEntry" Placeholder="請輸入成員姓名" />
         <Label x:Name="NameValidationLabel" TextColor="Red" FontSize="12" IsVisible="False"/>
         
-        <Label Text="Email *" FontAttributes="Bold"/>
-        <Entry x:Name="EmailEntry" Placeholder="請輸入Email地址" Keyboard="Email"/>
-        <Label x:Name="EmailValidationLabel" TextColor="Red" FontSize="12" IsVisible="False"/>
+        <Label Text="電話 *" FontAttributes="Bold"/>
+        <Entry x:Name="PhoneEntry" Placeholder="請輸入電話號碼" Keyboard="Telephone"/>
+        <Label x:Name="PhoneValidationLabel" TextColor="Red" FontSize="12" IsVisible="False"/>
         
         <VerticalStackLayout Spacing="10" Margin="0,30,0,0">
             <Button x:Name="SaveButton" Text="新增成員" Clicked="OnSaveMemberClicked" 

@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using System.Text.RegularExpressions;
 using System.Text.Json;
 
 namespace KickRoll.App.Views;
@@ -20,7 +19,7 @@ public partial class AddMemberPage : ContentPage
     {
         // Reset validation labels
         NameValidationLabel.IsVisible = false;
-        EmailValidationLabel.IsVisible = false;
+        PhoneValidationLabel.IsVisible = false;
         ResultLabel.Text = "";
 
         bool isValid = true;
@@ -33,17 +32,11 @@ public partial class AddMemberPage : ContentPage
             isValid = false;
         }
 
-        // Validate email format
-        if (string.IsNullOrWhiteSpace(EmailEntry.Text))
+        // Validate phone (required but no format validation - just non-empty)
+        if (string.IsNullOrWhiteSpace(PhoneEntry.Text))
         {
-            EmailValidationLabel.Text = "Email不可空白";
-            EmailValidationLabel.IsVisible = true;
-            isValid = false;
-        }
-        else if (!IsValidEmail(EmailEntry.Text))
-        {
-            EmailValidationLabel.Text = "Email格式不正確";
-            EmailValidationLabel.IsVisible = true;
+            PhoneValidationLabel.Text = "電話不可空白";
+            PhoneValidationLabel.IsVisible = true;
             isValid = false;
         }
 
@@ -61,7 +54,7 @@ public partial class AddMemberPage : ContentPage
             var newMember = new
             {
                 Name = NameEntry.Text.Trim(),
-                Phone = EmailEntry.Text.Trim(), // Using Phone field to store Email as per existing structure
+                Phone = PhoneEntry.Text.Trim(), // Now using Phone field for actual phone number
                 Gender = "",
                 Status = "active",
                 TeamId = "",
@@ -134,22 +127,5 @@ public partial class AddMemberPage : ContentPage
     private async void OnCancelClicked(object sender, EventArgs e)
     {
         await Navigation.PopAsync();
-    }
-
-    private bool IsValidEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email))
-            return false;
-
-        try
-        {
-            // Use regex for basic email validation
-            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, pattern, RegexOptions.IgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
     }
 }
