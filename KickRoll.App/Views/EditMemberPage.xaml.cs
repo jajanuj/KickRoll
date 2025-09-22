@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace KickRoll.App.Views;
 
@@ -77,7 +78,7 @@ public partial class EditMemberPage : ContentPage
             Phone = PhoneEntry.Text,
             Gender = GenderPicker.SelectedItem?.ToString() ?? "",
             Status = StatusPicker.SelectedItem?.ToString() ?? "active",
-            TeamId = selectedTeams[0],
+            TeamId = selectedTeams.FirstOrDefault() ?? "",
             TeamIds = selectedTeams,
             Birthdate = DateTime.SpecifyKind(BirthdatePicker.Date, DateTimeKind.Utc)
          };
@@ -91,12 +92,31 @@ public partial class EditMemberPage : ContentPage
          }
          else
          {
-            ResultLabel.Text = "更新失敗：" + response.StatusCode;
+            var errorContent = await response.Content.ReadAsStringAsync();
+            try
+            {
+               // Try to parse JSON error response
+               var errorResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(errorContent);
+               
+               if (errorResponse.TryGetProperty("error", out var errorMessage))
+               {
+                  await DisplayAlert("錯誤", errorMessage.GetString(), "OK");
+               }
+               else
+               {
+                  await DisplayAlert("錯誤", $"更新失敗：{response.StatusCode}", "OK");
+               }
+            }
+            catch
+            {
+               // If JSON parsing fails, show generic error
+               await DisplayAlert("錯誤", $"更新失敗：{response.StatusCode}", "OK");
+            }
          }
       }
       catch (Exception ex)
       {
-         ResultLabel.Text = "錯誤：" + ex.Message;
+         await DisplayAlert("錯誤", ex.Message, "OK");
       }
    }
 

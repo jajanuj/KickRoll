@@ -16,6 +16,17 @@ public class Member
    [FirestoreProperty] public DateTime? Birthdate { get; set; }
 }
 
+public class CreateMemberRequest
+{
+   public string Name { get; set; }
+   public string Phone { get; set; }
+   public string? Gender { get; set; }
+   public string? Status { get; set; }
+   public string? TeamId { get; set; }
+   public List<string>? TeamIds { get; set; }
+   public DateTime? Birthdate { get; set; }
+}
+
 [ApiController]
 [Route("api/[controller]")]
 public class MembersController : ControllerBase
@@ -64,6 +75,21 @@ public class MembersController : ControllerBase
    [HttpPut("{memberId}")]
    public async Task<IActionResult> UpdateMember(string memberId, [FromBody] Member member)
    {
+      // Check for duplicate name (excluding the current member being updated)
+      if (!string.IsNullOrWhiteSpace(member.Name))
+      {
+         var existingMembersSnapshot = await _db.Collection("members").GetSnapshotAsync();
+         var duplicateByName = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
+            doc.Id != memberId && // Exclude current member
+            doc.ContainsField("name") && 
+            string.Equals(doc.GetValue<string>("name"), member.Name, StringComparison.OrdinalIgnoreCase));
+
+         if (duplicateByName != null)
+         {
+            return BadRequest(new { error = $"成員姓名 '{member.Name}' 已存在" });
+         }
+      }
+
       var docRef = _db.Collection("members").Document(memberId);
 
       var updates = new Dictionary<string, object>();
@@ -131,6 +157,63 @@ public class MembersController : ControllerBase
          .ToList();
 
       return Ok(members);
+   }
+
+   [HttpPost]
+   public async Task<IActionResult> CreateMember([FromBody] CreateMemberRequest request)
+   {
+      if (string.IsNullOrWhiteSpace(request.Name))
+      {
+         return BadRequest(new { error = "姓名不可空白" });
+      }
+
+      // Phone validation - must be 10 digits and start with "09"
+      if (string.IsNullOrWhiteSpace(request.Phone))
+      {
+         return BadRequest(new { error = "電話不可空白" });
+      }
+      
+      if (request.Phone.Length != 10 || !request.Phone.StartsWith("09") || !request.Phone.All(char.IsDigit))
+      {
+         return BadRequest(new { error = "電話號碼格式不正確，必須為10碼且前2碼為09" });
+      }
+
+      try
+      {
+         // Check for duplicate members by name only
+         // Phone numbers can be shared (e.g., family members using parent's phone)
+         var existingMembersSnapshot = await _db.Collection("members").GetSnapshotAsync();
+         var duplicateByName = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
+            doc.ContainsField("name") && 
+            string.Equals(doc.GetValue<string>("name"), request.Name, StringComparison.OrdinalIgnoreCase));
+
+         if (duplicateByName != null)
+         {
+            return BadRequest(new { error = $"成員姓名 '{request.Name}' 已存在" });
+         }
+
+         // Generate new document ID
+         var newDocRef = _db.Collection("members").Document();
+         
+         var newMember = new Dictionary<string, object>
+         {
+            ["name"] = request.Name,
+            ["phone"] = request.Phone,
+            ["gender"] = request.Gender ?? "",
+            ["status"] = request.Status ?? "active",
+            ["teamId"] = request.TeamId ?? "",
+            ["teamIds"] = request.TeamIds ?? new List<string>(),
+            ["birthdate"] = request.Birthdate ?? DateTime.UtcNow
+         };
+
+         await newDocRef.SetAsync(newMember);
+
+         return Ok(new { success = true, memberId = newDocRef.Id, message = "成員新增成功" });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"新增成員失敗：{ex.Message}" });
+      }
    }
 
    [HttpGet("{memberId}")]

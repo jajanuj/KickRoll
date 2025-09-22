@@ -69,6 +69,11 @@ public partial class MembersListPage : ContentPage
       base.OnAppearing();
       await LoadMembersAsync(); // ✅ 每次回到頁面都重新抓 Firestore
    }
+
+   private async void OnAddMemberFabClicked(object sender, EventArgs e)
+   {
+      await Navigation.PushAsync(new AddMemberPage());
+   }
 }
 
 public class MemberDetail
