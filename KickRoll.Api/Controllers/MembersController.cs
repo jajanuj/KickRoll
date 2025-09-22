@@ -75,6 +75,21 @@ public class MembersController : ControllerBase
    [HttpPut("{memberId}")]
    public async Task<IActionResult> UpdateMember(string memberId, [FromBody] Member member)
    {
+      // Check for duplicate name (excluding the current member being updated)
+      if (!string.IsNullOrWhiteSpace(member.Name))
+      {
+         var existingMembersSnapshot = await _db.Collection("members").GetSnapshotAsync();
+         var duplicateByName = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
+            doc.Id != memberId && // Exclude current member
+            doc.ContainsField("name") && 
+            string.Equals(doc.GetValue<string>("name"), member.Name, StringComparison.OrdinalIgnoreCase));
+
+         if (duplicateByName != null)
+         {
+            return BadRequest(new { error = $"成員姓名 '{member.Name}' 已存在" });
+         }
+      }
+
       var docRef = _db.Collection("members").Document(memberId);
 
       var updates = new Dictionary<string, object>();
