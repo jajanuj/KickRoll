@@ -165,24 +165,16 @@ public class MembersController : ControllerBase
 
       try
       {
-         // Check for duplicate members by name or phone
+         // Check for duplicate members by name only
+         // Phone numbers can be shared (e.g., family members using parent's phone)
          var existingMembersSnapshot = await _db.Collection("members").GetSnapshotAsync();
          var duplicateByName = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
             doc.ContainsField("name") && 
             string.Equals(doc.GetValue<string>("name"), request.Name, StringComparison.OrdinalIgnoreCase));
-            
-         var duplicateByPhone = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
-            doc.ContainsField("phone") && 
-            doc.GetValue<string>("phone") == request.Phone);
 
          if (duplicateByName != null)
          {
             return BadRequest(new { error = $"成員姓名 '{request.Name}' 已存在" });
-         }
-
-         if (duplicateByPhone != null)
-         {
-            return BadRequest(new { error = $"電話號碼 '{request.Phone}' 已存在" });
          }
 
          // Generate new document ID
