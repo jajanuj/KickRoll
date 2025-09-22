@@ -1,6 +1,5 @@
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Mail;
 
 namespace KickRoll.Api.Controllers;
 
@@ -153,21 +152,46 @@ public class MembersController : ControllerBase
          return BadRequest(new { error = "姓名不可空白" });
       }
 
-      // Basic email validation - check if it contains @ and has some structure
-      if (!string.IsNullOrWhiteSpace(request.Phone) && !IsValidEmail(request.Phone))
+      // Phone validation - must be 10 digits and start with "09"
+      if (string.IsNullOrWhiteSpace(request.Phone))
       {
-         return BadRequest(new { error = "Email 格式不正確" });
+         return BadRequest(new { error = "電話不可空白" });
+      }
+      
+      if (request.Phone.Length != 10 || !request.Phone.StartsWith("09") || !request.Phone.All(char.IsDigit))
+      {
+         return BadRequest(new { error = "電話號碼格式不正確，必須為10碼且前2碼為09" });
       }
 
       try
       {
+         // Check for duplicate members by name or phone
+         var existingMembersSnapshot = await _db.Collection("members").GetSnapshotAsync();
+         var duplicateByName = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
+            doc.ContainsField("name") && 
+            string.Equals(doc.GetValue<string>("name"), request.Name, StringComparison.OrdinalIgnoreCase));
+            
+         var duplicateByPhone = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
+            doc.ContainsField("phone") && 
+            doc.GetValue<string>("phone") == request.Phone);
+
+         if (duplicateByName != null)
+         {
+            return BadRequest(new { error = $"成員姓名 '{request.Name}' 已存在" });
+         }
+
+         if (duplicateByPhone != null)
+         {
+            return BadRequest(new { error = $"電話號碼 '{request.Phone}' 已存在" });
+         }
+
          // Generate new document ID
          var newDocRef = _db.Collection("members").Document();
          
          var newMember = new Dictionary<string, object>
          {
             ["name"] = request.Name,
-            ["phone"] = request.Phone ?? "",
+            ["phone"] = request.Phone,
             ["gender"] = request.Gender ?? "",
             ["status"] = request.Status ?? "active",
             ["teamId"] = request.TeamId ?? "",
@@ -182,19 +206,6 @@ public class MembersController : ControllerBase
       catch (Exception ex)
       {
          return StatusCode(500, new { error = $"新增成員失敗：{ex.Message}" });
-      }
-   }
-
-   private bool IsValidEmail(string email)
-   {
-      try
-      {
-         var addr = new System.Net.Mail.MailAddress(email);
-         return addr.Address == email;
-      }
-      catch
-      {
-         return false;
       }
    }
 

@@ -32,10 +32,16 @@ public partial class AddMemberPage : ContentPage
             isValid = false;
         }
 
-        // Validate phone (required but no format validation - just non-empty)
+        // Validate phone (must be 10 digits and start with "09")
         if (string.IsNullOrWhiteSpace(PhoneEntry.Text))
         {
             PhoneValidationLabel.Text = "電話不可空白";
+            PhoneValidationLabel.IsVisible = true;
+            isValid = false;
+        }
+        else if (!IsValidTaiwanMobile(PhoneEntry.Text.Trim()))
+        {
+            PhoneValidationLabel.Text = "電話號碼格式不正確，必須為10碼且前2碼為09";
             PhoneValidationLabel.IsVisible = true;
             isValid = false;
         }
@@ -127,5 +133,18 @@ public partial class AddMemberPage : ContentPage
     private async void OnCancelClicked(object sender, EventArgs e)
     {
         await Navigation.PopAsync();
+    }
+
+    private bool IsValidTaiwanMobile(string phone)
+    {
+        // Check if phone is exactly 10 digits and starts with "09"
+        if (string.IsNullOrWhiteSpace(phone) || phone.Length != 10)
+            return false;
+            
+        if (!phone.StartsWith("09"))
+            return false;
+            
+        // Check if all characters are digits
+        return phone.All(char.IsDigit);
     }
 }
