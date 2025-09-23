@@ -42,10 +42,31 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        // Remove naming policy to let JsonPropertyName attributes work
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
 var app = builder.Build();
+
+// Add request logging middleware
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/courses") && context.Request.Method == "POST")
+    {
+        Console.WriteLine($"[MIDDLEWARE] Incoming POST to {context.Request.Path}");
+        Console.WriteLine($"[MIDDLEWARE] Content-Type: {context.Request.ContentType}");
+        Console.WriteLine($"[MIDDLEWARE] Content-Length: {context.Request.ContentLength}");
+        
+        // Enable buffering to read the body multiple times
+        context.Request.EnableBuffering();
+        var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+        Console.WriteLine($"[MIDDLEWARE] Request body: {body}");
+        context.Request.Body.Position = 0; // Reset for controller
+    }
+    
+    await next();
+});
 
 // 🔹 註冊 Controllers
 app.MapControllers();
