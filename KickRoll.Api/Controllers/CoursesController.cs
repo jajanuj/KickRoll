@@ -15,16 +15,40 @@ public class CoursesController : ControllerBase
         _db = db;
     }
 
+    [HttpGet("test")]
+    public IActionResult Test()
+    {
+        return Ok(new { message = "API is working", timestamp = DateTime.UtcNow });
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateCourse([FromBody] Course course)
     {
         try
         {
-            Console.WriteLine($"[DEBUG] CreateCourse called with: {System.Text.Json.JsonSerializer.Serialize(course)}");
+            Console.WriteLine($"[DEBUG] CreateCourse called");
+            Console.WriteLine($"[DEBUG] Request Content-Type: {Request.ContentType}");
+            Console.WriteLine($"[DEBUG] Course is null: {course == null}");
+            
+            if (course != null)
+            {
+                Console.WriteLine($"[DEBUG] Course object: Name='{course.Name}', CourseId='{course.CourseId}', Status='{course.Status}'");
+                Console.WriteLine($"[DEBUG] Course serialized: {System.Text.Json.JsonSerializer.Serialize(course)}");
+            }
+            else
+            {
+                // Try to read raw request body for debugging
+                Request.EnableBuffering();
+                Request.Body.Position = 0;
+                var reader = new StreamReader(Request.Body);
+                var rawJson = await reader.ReadToEndAsync();
+                Console.WriteLine($"[DEBUG] Raw request body: {rawJson}");
+                Request.Body.Position = 0;
+            }
             
             if (course == null)
             {
-                return BadRequest(new { message = "課程資料不可為空" });
+                return BadRequest(new { message = "課程資料不可為空 - 請檢查 JSON 格式" });
             }
 
             if (string.IsNullOrWhiteSpace(course.Name))
@@ -64,6 +88,7 @@ public class CoursesController : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] CreateCourse failed: {ex.Message}");
+            Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
             return StatusCode(500, new { message = $"建立課程失敗: {ex.Message}" });
         }
     }

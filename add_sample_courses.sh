@@ -5,7 +5,13 @@
 
 BASE_URL="http://localhost:5112/api"
 
-echo "Adding sample courses to Firestore..."
+echo "Testing API connectivity..."
+
+# Test basic API connectivity
+curl -X GET "${BASE_URL}/courses/test" \
+  -H "Content-Type: application/json"
+
+echo -e "\n\nAdding sample courses to Firestore...\n"
 
 # Sample Course 1: 足球基礎班
 curl -X POST "${BASE_URL}/courses" \
