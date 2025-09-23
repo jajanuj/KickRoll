@@ -49,6 +49,9 @@ public partial class MemberDetailPage : ContentPage
     {
         try
         {
+            StatusLabel.Text = "載入課程資訊中...";
+            StatusLabel.TextColor = Colors.Blue;
+
             // 清空現有資料
             _enrolledCourses.Clear();
             _availableCourses.Clear();
@@ -64,21 +67,40 @@ public partial class MemberDetailPage : ContentPage
             }
 
             // 載入所有可用課程
-            var allCourses = await _httpClient.GetFromJsonAsync<List<CourseInfo>>("api/courses/list");
-            if (allCourses != null)
+            var allCoursesResponse = await _httpClient.GetAsync("api/courses/list");
+            if (allCoursesResponse.IsSuccessStatusCode)
             {
-                var enrolledCourseIds = _enrolledCourses.Select(c => c.CourseId).ToHashSet();
+                var allCourses = await allCoursesResponse.Content.ReadFromJsonAsync<List<CourseInfo>>();
                 
-                foreach (var course in allCourses)
+                if (allCourses != null && allCourses.Any())
                 {
-                    if (!enrolledCourseIds.Contains(course.CourseId) && course.Status == "Active")
+                    var enrolledCourseIds = _enrolledCourses.Select(c => c.CourseId).ToHashSet();
+                    
+                    foreach (var course in allCourses)
                     {
-                        _availableCourses.Add(course);
+                        // 篩選條件：
+                        // 1. 成員尚未加入此課程
+                        // 2. 課程狀態為 "Active"
+                        if (!enrolledCourseIds.Contains(course.CourseId) && course.Status == "Active")
+                        {
+                            _availableCourses.Add(course);
+                        }
                     }
+                    
+                    StatusLabel.Text = $"載入完成：共 {allCourses.Count} 個課程，{_enrolledCourses.Count} 個已加入，{_availableCourses.Count} 個可加入";
+                    StatusLabel.TextColor = Colors.Green;
+                }
+                else
+                {
+                    StatusLabel.Text = "系統中目前沒有任何課程資料";
+                    StatusLabel.TextColor = Colors.Orange;
                 }
             }
-
-            StatusLabel.Text = "";
+            else
+            {
+                StatusLabel.Text = $"無法連接課程服務：HTTP {allCoursesResponse.StatusCode}";
+                StatusLabel.TextColor = Colors.Red;
+            }
         }
         catch (Exception ex)
         {

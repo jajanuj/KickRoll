@@ -45,6 +45,7 @@
             <Frame BorderColor="DarkGreen" CornerRadius="8" Padding="15">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="可加入的課程" FontSize="18" FontAttributes="Bold" TextColor="DarkGreen" />
+                    <Label Text="篩選條件：尚未加入且狀態為 Active 的課程" FontSize="12" TextColor="Gray" />
                     <CollectionView x:Name="AvailableCoursesCollection" ItemsSource="{Binding AvailableCourses}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
@@ -54,6 +55,8 @@
                                             <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
                                             <Label Text="{Binding Description}" FontSize="14" TextColor="Gray" />
                                             <Label Text="{Binding Capacity, StringFormat='容量: {0} 人'}" 
+                                                   FontSize="12" TextColor="DarkGray" />
+                                            <Label Text="{Binding Status, StringFormat='狀態: {0}'}" 
                                                    FontSize="12" TextColor="DarkGray" />
                                         </VerticalStackLayout>
                                         <Button Grid.Column="1" 
@@ -68,7 +71,14 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                         <CollectionView.EmptyView>
-                            <Label Text="沒有可加入的課程" TextColor="Gray" HorizontalOptions="Center" />
+                            <StackLayout Orientation="Vertical" HorizontalOptions="Center" Padding="20">
+                                <Label Text="沒有可加入的課程" TextColor="Gray" HorizontalOptions="Center" />
+                                <Label Text="可能原因：" FontSize="12" TextColor="DarkGray" HorizontalOptions="Center" Margin="0,10,0,0" />
+                                <Label Text="• 系統中沒有課程資料" FontSize="11" TextColor="DarkGray" HorizontalOptions="Center" />
+                                <Label Text="• 所有課程都已加入" FontSize="11" TextColor="DarkGray" HorizontalOptions="Center" />
+                                <Label Text="• 課程狀態不是 Active" FontSize="11" TextColor="DarkGray" HorizontalOptions="Center" />
+                                <Label Text="• API 連線問題" FontSize="11" TextColor="DarkGray" HorizontalOptions="Center" />
+                            </StackLayout>
                         </CollectionView.EmptyView>
                     </CollectionView>
                 </VerticalStackLayout>

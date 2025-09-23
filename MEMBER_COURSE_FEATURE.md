@@ -95,6 +95,26 @@ Removes a member from a course
 
 ## Testing
 
+### 設置測試資料步驟
+1. 確保 Firestore 已正確設置並可連接
+2. 啟動 KickRoll API 服務器：`cd KickRoll.Api && dotnet run --urls "http://localhost:5112"`
+3. 執行測試資料腳本：`./add_sample_courses.sh`
+4. 啟動 MAUI 應用程式測試功能
+
+### 可加入課程的篩選條件
+系統會自動篩選符合以下條件的課程：
+1. **成員尚未加入**：不在成員的已加入課程清單中
+2. **課程狀態為 Active**：`course.Status == "Active"`
+3. **課程存在於資料庫**：課程必須存在於 Firestore courses 集合中
+
+### 常見問題排除
+- **看不到可加入的課程**：
+  - 檢查 API 是否正在運行
+  - 確認 Firestore 連接正常
+  - 執行 `add_sample_courses.sh` 新增測試資料
+  - 確認課程狀態為 "Active"
+  - 檢查成員是否已加入所有課程
+
 ### Manual Testing Steps
 1. Start the API server
 2. Run `./add_sample_courses.sh` to add test courses
