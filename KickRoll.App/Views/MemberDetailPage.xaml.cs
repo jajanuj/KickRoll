@@ -68,22 +68,17 @@ public partial class MemberDetailPage : ContentPage
                         _enrolledCourses.Add(course);
                     }
                 }
-                StatusLabel.Text = $"已載入 {_enrolledCourses.Count} 個已加入課程";
             }
             else
             {
                 var errorContent = await enrolledCoursesResponse.Content.ReadAsStringAsync();
-                StatusLabel.Text = $"載入已加入課程失敗：HTTP {enrolledCoursesResponse.StatusCode} - {errorContent}";
-                StatusLabel.TextColor = Colors.Orange;
+                Console.WriteLine($"[DEBUG] Failed to load enrolled courses: {errorContent}");
             }
 
             // 載入所有可用課程
             var allCoursesResponse = await _httpClient.GetAsync("api/courses/list");
             if (allCoursesResponse.IsSuccessStatusCode)
             {
-                var responseContent = await allCoursesResponse.Content.ReadAsStringAsync();
-                StatusLabel.Text += $"\nAPI 回應內容: {responseContent.Substring(0, Math.Min(200, responseContent.Length))}...";
-                
                 var allCourses = await allCoursesResponse.Content.ReadFromJsonAsync<List<CourseInfo>>();
                 
                 if (allCourses != null && allCourses.Any())
@@ -93,8 +88,7 @@ public partial class MemberDetailPage : ContentPage
                     int totalActive = 0;
                     foreach (var course in allCourses)
                     {
-                        // Log course details for debugging
-                        StatusLabel.Text += $"\n課程: {course.Name} (狀態: {course.Status}, ID: {course.CourseId})";
+                        Console.WriteLine($"[DEBUG] Course: {course.Name} (Status: {course.Status}, ID: {course.CourseId})");
                         
                         if (course.Status == "Active")
                         {
@@ -115,21 +109,24 @@ public partial class MemberDetailPage : ContentPage
                 }
                 else
                 {
-                    StatusLabel.Text = "API 回應為空或無課程資料";
+                    StatusLabel.Text = "系統中目前沒有任何課程資料 - 請執行 add_sample_courses.sh 腳本新增測試資料";
                     StatusLabel.TextColor = Colors.Orange;
                 }
             }
             else
             {
                 var errorContent = await allCoursesResponse.Content.ReadAsStringAsync();
-                StatusLabel.Text = $"無法連接課程服務：HTTP {allCoursesResponse.StatusCode} - {errorContent}";
+                StatusLabel.Text = $"無法連接課程服務：HTTP {allCoursesResponse.StatusCode}";
                 StatusLabel.TextColor = Colors.Red;
+                Console.WriteLine($"[DEBUG] API Error: {errorContent}");
             }
         }
         catch (Exception ex)
         {
-            StatusLabel.Text = $"載入課程資訊失敗：{ex.Message}\n堆疊: {ex.StackTrace}";
+            StatusLabel.Text = $"載入課程資訊失敗：{ex.Message}";
             StatusLabel.TextColor = Colors.Red;
+            Console.WriteLine($"[ERROR] LoadCoursesAsync failed: {ex.Message}");
+            Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
         }
     }
 

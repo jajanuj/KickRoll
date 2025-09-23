@@ -18,37 +18,54 @@ public class CoursesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateCourse([FromBody] Course course)
     {
-        if (string.IsNullOrWhiteSpace(course.Name))
+        try
         {
-            return BadRequest(new { message = "課程名稱不可為空" });
-        }
+            Console.WriteLine($"[DEBUG] CreateCourse called with: {System.Text.Json.JsonSerializer.Serialize(course)}");
+            
+            if (course == null)
+            {
+                return BadRequest(new { message = "課程資料不可為空" });
+            }
 
-        // Generate course ID if not provided
-        if (string.IsNullOrWhiteSpace(course.CourseId))
+            if (string.IsNullOrWhiteSpace(course.Name))
+            {
+                return BadRequest(new { message = "課程名稱不可為空" });
+            }
+
+            // Generate course ID if not provided
+            if (string.IsNullOrWhiteSpace(course.CourseId))
+            {
+                course.CourseId = Guid.NewGuid().ToString("N");
+            }
+
+            // Set default values
+            if (string.IsNullOrWhiteSpace(course.Status))
+            {
+                course.Status = "Active";
+            }
+
+            // Ensure dates are UTC
+            if (course.StartDate.HasValue)
+            {
+                course.StartDate = DateTime.SpecifyKind(course.StartDate.Value, DateTimeKind.Utc);
+            }
+            if (course.EndDate.HasValue)
+            {
+                course.EndDate = DateTime.SpecifyKind(course.EndDate.Value, DateTimeKind.Utc);
+            }
+
+            Console.WriteLine($"[DEBUG] Creating course in Firestore: {course.CourseId}");
+            var docRef = _db.Collection("courses").Document(course.CourseId);
+            await docRef.SetAsync(course);
+
+            Console.WriteLine($"[DEBUG] Course created successfully: {course.CourseId}");
+            return Ok(course);
+        }
+        catch (Exception ex)
         {
-            course.CourseId = Guid.NewGuid().ToString("N");
+            Console.WriteLine($"[ERROR] CreateCourse failed: {ex.Message}");
+            return StatusCode(500, new { message = $"建立課程失敗: {ex.Message}" });
         }
-
-        // Set default values
-        if (string.IsNullOrWhiteSpace(course.Status))
-        {
-            course.Status = "Active";
-        }
-
-        // Ensure dates are UTC
-        if (course.StartDate.HasValue)
-        {
-            course.StartDate = DateTime.SpecifyKind(course.StartDate.Value, DateTimeKind.Utc);
-        }
-        if (course.EndDate.HasValue)
-        {
-            course.EndDate = DateTime.SpecifyKind(course.EndDate.Value, DateTimeKind.Utc);
-        }
-
-        var docRef = _db.Collection("courses").Document(course.CourseId);
-        await docRef.SetAsync(course);
-
-        return Ok(course);
     }
 
     [HttpGet("list")]
