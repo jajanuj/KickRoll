@@ -22,18 +22,18 @@ public class CoursesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateCourse([FromBody] Course course)
+    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseRequest request)
     {
         try
         {
             Console.WriteLine($"[DEBUG] CreateCourse called");
             Console.WriteLine($"[DEBUG] Request Content-Type: {Request.ContentType}");
-            Console.WriteLine($"[DEBUG] Course is null: {course == null}");
+            Console.WriteLine($"[DEBUG] Request is null: {request == null}");
             
-            if (course != null)
+            if (request != null)
             {
-                Console.WriteLine($"[DEBUG] Course object: Name='{course.Name}', CourseId='{course.CourseId}', Status='{course.Status}'");
-                Console.WriteLine($"[DEBUG] Course serialized: {System.Text.Json.JsonSerializer.Serialize(course)}");
+                Console.WriteLine($"[DEBUG] Request object: Name='{request.Name}', CourseId='{request.CourseId}', Status='{request.Status}'");
+                Console.WriteLine($"[DEBUG] Request serialized: {System.Text.Json.JsonSerializer.Serialize(request)}");
             }
             else
             {
@@ -46,37 +46,28 @@ public class CoursesController : ControllerBase
                 Request.Body.Position = 0;
             }
             
-            if (course == null)
+            if (request == null)
             {
                 return BadRequest(new { message = "課程資料不可為空 - 請檢查 JSON 格式" });
             }
 
-            if (string.IsNullOrWhiteSpace(course.Name))
+            if (string.IsNullOrWhiteSpace(request.Name))
             {
                 return BadRequest(new { message = "課程名稱不可為空" });
             }
 
-            // Generate course ID if not provided
-            if (string.IsNullOrWhiteSpace(course.CourseId))
+            // Map DTO to Course entity
+            var course = new Course
             {
-                course.CourseId = Guid.NewGuid().ToString("N");
-            }
-
-            // Set default values
-            if (string.IsNullOrWhiteSpace(course.Status))
-            {
-                course.Status = "Active";
-            }
-
-            // Ensure dates are UTC
-            if (course.StartDate.HasValue)
-            {
-                course.StartDate = DateTime.SpecifyKind(course.StartDate.Value, DateTimeKind.Utc);
-            }
-            if (course.EndDate.HasValue)
-            {
-                course.EndDate = DateTime.SpecifyKind(course.EndDate.Value, DateTimeKind.Utc);
-            }
+                CourseId = string.IsNullOrWhiteSpace(request.CourseId) ? Guid.NewGuid().ToString("N") : request.CourseId,
+                Name = request.Name,
+                Description = request.Description,
+                InstructorId = request.InstructorId,
+                Capacity = request.Capacity,
+                Status = string.IsNullOrWhiteSpace(request.Status) ? "Active" : request.Status,
+                StartDate = request.StartDate.HasValue ? DateTime.SpecifyKind(request.StartDate.Value, DateTimeKind.Utc) : null,
+                EndDate = request.EndDate.HasValue ? DateTime.SpecifyKind(request.EndDate.Value, DateTimeKind.Utc) : null
+            };
 
             Console.WriteLine($"[DEBUG] Creating course in Firestore: {course.CourseId}");
             var docRef = _db.Collection("courses").Document(course.CourseId);
