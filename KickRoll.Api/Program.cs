@@ -8,33 +8,50 @@ var builder = WebApplication.CreateBuilder(args);
 // 🔹 Firestore 初始化
 builder.Services.AddSingleton(provider =>
 {
-   var env = builder.Environment;
-   var keyPath = Path.Combine(env.ContentRootPath, "Keys", "serviceAccount.json");
+    try 
+    {
+        var env = builder.Environment;
+        var keyPath = Path.Combine(env.ContentRootPath, "Keys", "serviceAccount.json");
 
-   // 讀 JSON，取得 project_id
-   var json = File.ReadAllText(keyPath);
-   using var doc = JsonDocument.Parse(json);
-   var projectId = doc.RootElement.GetProperty("project_id").GetString();
+        Console.WriteLine($"[DEBUG] Checking Firestore key path: {keyPath}");
+        
+        if (!File.Exists(keyPath))
+        {
+            Console.WriteLine($"[WARNING] Firestore service account file not found at: {keyPath}");
+            Console.WriteLine($"[WARNING] Firestore will not be available. API will use mock data for testing.");
+            return null; // Return null to indicate Firestore is not available
+        }
 
-   Console.WriteLine($"[DEBUG] Firestore key path: {keyPath}");
-   Console.WriteLine($"[DEBUG] Loaded project_id: {projectId}");
+        // 讀 JSON，取得 project_id
+        var json = File.ReadAllText(keyPath);
+        using var doc = JsonDocument.Parse(json);
+        var projectId = doc.RootElement.GetProperty("project_id").GetString();
 
-   // 載入憑證
-   GoogleCredential credential;
-   using (var stream = new FileStream(keyPath, FileMode.Open, FileAccess.Read))
-   {
-      credential = GoogleCredential.FromStream(stream);
-   }
+        Console.WriteLine($"[DEBUG] Loaded project_id: {projectId}");
 
-   Console.WriteLine($"[DEBUG] Loaded credential type: {credential?.UnderlyingCredential?.GetType().Name}");
+        // 載入憑證
+        GoogleCredential credential;
+        using (var stream = new FileStream(keyPath, FileMode.Open, FileAccess.Read))
+        {
+            credential = GoogleCredential.FromStream(stream);
+        }
 
-   // 建立 Firestore Client
-   var client = new FirestoreClientBuilder
-   {
-      Credential = credential
-   }.Build();
+        Console.WriteLine($"[DEBUG] Loaded credential type: {credential?.UnderlyingCredential?.GetType().Name}");
 
-   return FirestoreDb.Create(projectId, client);
+        // 建立 Firestore Client
+        var client = new FirestoreClientBuilder
+        {
+            Credential = credential
+        }.Build();
+
+        return FirestoreDb.Create(projectId, client);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] Failed to initialize Firestore: {ex.Message}");
+        Console.WriteLine($"[WARNING] API will continue without Firestore. Some features may not work.");
+        return null;
+    }
 });
 
 // 🔹 MVC Controllers

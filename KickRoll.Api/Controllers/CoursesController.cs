@@ -8,17 +8,72 @@ namespace KickRoll.Api.Controllers;
 [Route("api/[controller]")]
 public class CoursesController : ControllerBase
 {
-    private readonly FirestoreDb _db;
+    private readonly FirestoreDb? _db;
+    private static readonly List<Course> _mockCourses = new();
 
-    public CoursesController(FirestoreDb db)
+    public CoursesController(FirestoreDb? db)
     {
         _db = db;
+        
+        // Initialize mock data if Firestore is not available
+        if (_db == null && !_mockCourses.Any())
+        {
+            InitializeMockData();
+        }
+    }
+
+    private static void InitializeMockData()
+    {
+        _mockCourses.AddRange(new[]
+        {
+            new Course
+            {
+                CourseId = "course-001",
+                Name = "足球基礎班",
+                Description = "適合初學者的足球基礎課程，學習基本技巧和規則",
+                InstructorId = "coach-001",
+                Capacity = 20,
+                Status = "Active",
+                StartDate = DateTime.Parse("2024-01-15T00:00:00Z").ToUniversalTime(),
+                EndDate = DateTime.Parse("2024-06-15T00:00:00Z").ToUniversalTime()
+            },
+            new Course
+            {
+                CourseId = "course-002",
+                Name = "進階足球戰術",
+                Description = "深入學習足球戰術和團隊合作策略",
+                InstructorId = "coach-002",
+                Capacity = 15,
+                Status = "Active",
+                StartDate = DateTime.Parse("2024-02-01T00:00:00Z").ToUniversalTime(),
+                EndDate = DateTime.Parse("2024-07-01T00:00:00Z").ToUniversalTime()
+            },
+            new Course
+            {
+                CourseId = "course-003",
+                Name = "守門員專業訓練",
+                Description = "專為守門員設計的專業訓練課程",
+                InstructorId = "coach-003",
+                Capacity = 8,
+                Status = "Active",
+                StartDate = DateTime.Parse("2024-03-01T00:00:00Z").ToUniversalTime(),
+                EndDate = DateTime.Parse("2024-08-01T00:00:00Z").ToUniversalTime()
+            }
+        });
+        
+        Console.WriteLine($"[DEBUG] Initialized {_mockCourses.Count} mock courses");
     }
 
     [HttpGet("test")]
     public IActionResult Test()
     {
-        return Ok(new { message = "API is working", timestamp = DateTime.UtcNow });
+        var firestoreStatus = _db != null ? "Connected" : "Using Mock Data";
+        return Ok(new { 
+            message = "API is working", 
+            timestamp = DateTime.UtcNow,
+            firestore = firestoreStatus,
+            mockCoursesCount = _mockCourses.Count
+        });
     }
 
     [HttpPost]
@@ -28,6 +83,7 @@ public class CoursesController : ControllerBase
         {
             Console.WriteLine($"[DEBUG] CreateCourse called");
             Console.WriteLine($"[DEBUG] Request Content-Type: {Request.ContentType}");
+            Console.WriteLine($"[DEBUG] Firestore available: {_db != null}");
             Console.WriteLine($"[DEBUG] Request is null: {request == null}");
             
             if (request != null)
@@ -69,9 +125,20 @@ public class CoursesController : ControllerBase
                 EndDate = request.EndDate.HasValue ? DateTime.SpecifyKind(request.EndDate.Value, DateTimeKind.Utc) : null
             };
 
-            Console.WriteLine($"[DEBUG] Creating course in Firestore: {course.CourseId}");
-            var docRef = _db.Collection("courses").Document(course.CourseId);
-            await docRef.SetAsync(course);
+            if (_db != null)
+            {
+                // Use Firestore
+                Console.WriteLine($"[DEBUG] Creating course in Firestore: {course.CourseId}");
+                var docRef = _db.Collection("courses").Document(course.CourseId);
+                await docRef.SetAsync(course);
+            }
+            else
+            {
+                // Use mock data
+                Console.WriteLine($"[DEBUG] Adding course to mock data: {course.CourseId}");
+                _mockCourses.RemoveAll(c => c.CourseId == course.CourseId); // Remove existing
+                _mockCourses.Add(course);
+            }
 
             Console.WriteLine($"[DEBUG] Course created successfully: {course.CourseId}");
             return Ok(course);
@@ -89,45 +156,69 @@ public class CoursesController : ControllerBase
     {
         try
         {
-            var snapshot = await _db.Collection("courses").GetSnapshotAsync();
-            
-            Console.WriteLine($"[DEBUG] Found {snapshot.Documents.Count} course documents");
-
-            var courses = new List<object>();
-            
-            foreach (var doc in snapshot.Documents)
+            if (_db != null)
             {
-                Console.WriteLine($"[DEBUG] Course doc ID: {doc.Id}, Exists: {doc.Exists}");
+                // Use Firestore
+                var snapshot = await _db.Collection("courses").GetSnapshotAsync();
                 
-                if (doc.Exists)
-                {
-                    // Print all fields for debugging
-                    var fields = doc.ToDictionary();
-                    Console.WriteLine($"[DEBUG] Course fields: {string.Join(", ", fields.Keys)}");
-                    
-                    courses.Add(new
-                    {
-                        CourseId = doc.Id,
-                        Name = doc.ContainsField("name") ? doc.GetValue<string>("name") : 
-                               doc.ContainsField("Name") ? doc.GetValue<string>("Name") : "(未命名)",
-                        Description = doc.ContainsField("description") ? doc.GetValue<string>("description") :
-                                    doc.ContainsField("Description") ? doc.GetValue<string>("Description") : "",
-                        InstructorId = doc.ContainsField("instructorId") ? doc.GetValue<string>("instructorId") :
-                                     doc.ContainsField("InstructorId") ? doc.GetValue<string>("InstructorId") : "",
-                        Capacity = doc.ContainsField("capacity") ? doc.GetValue<int>("capacity") :
-                                 doc.ContainsField("Capacity") ? doc.GetValue<int>("Capacity") : 0,
-                        Status = doc.ContainsField("status") ? doc.GetValue<string>("status") :
-                               doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Active",
-                        StartDate = doc.ContainsField("startDate") ? doc.GetValue<DateTime?>("startDate") :
-                                  doc.ContainsField("StartDate") ? doc.GetValue<DateTime?>("StartDate") : null,
-                        EndDate = doc.ContainsField("endDate") ? doc.GetValue<DateTime?>("endDate") :
-                                doc.ContainsField("EndDate") ? doc.GetValue<DateTime?>("EndDate") : null
-                    });
-                }
-            }
+                Console.WriteLine($"[DEBUG] Found {snapshot.Documents.Count} course documents in Firestore");
 
-            Console.WriteLine($"[DEBUG] Returning {courses.Count} courses");
-            return Ok(courses);
+                var courses = new List<object>();
+                
+                foreach (var doc in snapshot.Documents)
+                {
+                    Console.WriteLine($"[DEBUG] Course doc ID: {doc.Id}, Exists: {doc.Exists}");
+                    
+                    if (doc.Exists)
+                    {
+                        // Print all fields for debugging
+                        var fields = doc.ToDictionary();
+                        Console.WriteLine($"[DEBUG] Course fields: {string.Join(", ", fields.Keys)}");
+                        
+                        courses.Add(new
+                        {
+                            CourseId = doc.Id,
+                            Name = doc.ContainsField("name") ? doc.GetValue<string>("name") : 
+                                   doc.ContainsField("Name") ? doc.GetValue<string>("Name") : "(未命名)",
+                            Description = doc.ContainsField("description") ? doc.GetValue<string>("description") :
+                                        doc.ContainsField("Description") ? doc.GetValue<string>("Description") : "",
+                            InstructorId = doc.ContainsField("instructorId") ? doc.GetValue<string>("instructorId") :
+                                         doc.ContainsField("InstructorId") ? doc.GetValue<string>("InstructorId") : "",
+                            Capacity = doc.ContainsField("capacity") ? doc.GetValue<int>("capacity") :
+                                     doc.ContainsField("Capacity") ? doc.GetValue<int>("Capacity") : 0,
+                            Status = doc.ContainsField("status") ? doc.GetValue<string>("status") :
+                                   doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Active",
+                            StartDate = doc.ContainsField("startDate") ? doc.GetValue<DateTime?>("startDate") :
+                                      doc.ContainsField("StartDate") ? doc.GetValue<DateTime?>("StartDate") : null,
+                            EndDate = doc.ContainsField("endDate") ? doc.GetValue<DateTime?>("endDate") :
+                                    doc.ContainsField("EndDate") ? doc.GetValue<DateTime?>("EndDate") : null
+                        });
+                    }
+                }
+
+                Console.WriteLine($"[DEBUG] Returning {courses.Count} courses from Firestore");
+                return Ok(courses);
+            }
+            else
+            {
+                // Use mock data
+                Console.WriteLine($"[DEBUG] Using mock data - found {_mockCourses.Count} courses");
+                
+                var courses = _mockCourses.Select(course => new
+                {
+                    CourseId = course.CourseId,
+                    Name = course.Name ?? "(未命名)",
+                    Description = course.Description ?? "",
+                    InstructorId = course.InstructorId ?? "",
+                    Capacity = course.Capacity,
+                    Status = course.Status ?? "Active",
+                    StartDate = course.StartDate,
+                    EndDate = course.EndDate
+                }).ToList();
+
+                Console.WriteLine($"[DEBUG] Returning {courses.Count} mock courses");
+                return Ok(courses);
+            }
         }
         catch (Exception ex)
         {
@@ -224,42 +315,53 @@ public class CoursesController : ControllerBase
         {
             Console.WriteLine($"[DEBUG] Getting courses for member: {memberId}");
             
-            var memberCoursesSnapshot = await _db.Collection("members").Document(memberId)
-                .Collection("courses").GetSnapshotAsync();
-
-            Console.WriteLine($"[DEBUG] Found {memberCoursesSnapshot.Documents.Count} enrolled courses for member {memberId}");
-
-            var courses = new List<object>();
-
-            foreach (var doc in memberCoursesSnapshot.Documents)
+            if (_db != null)
             {
-                var courseId = doc.GetValue<string>("CourseId");
-                Console.WriteLine($"[DEBUG] Processing enrolled course: {courseId}");
-                
-                var courseRef = _db.Collection("courses").Document(courseId);
-                var courseSnapshot = await courseRef.GetSnapshotAsync();
+                // Use Firestore
+                var memberCoursesSnapshot = await _db.Collection("members").Document(memberId)
+                    .Collection("courses").GetSnapshotAsync();
 
-                if (courseSnapshot.Exists)
+                Console.WriteLine($"[DEBUG] Found {memberCoursesSnapshot.Documents.Count} enrolled courses for member {memberId} in Firestore");
+
+                var courses = new List<object>();
+
+                foreach (var doc in memberCoursesSnapshot.Documents)
                 {
-                    courses.Add(new
+                    var courseId = doc.GetValue<string>("CourseId");
+                    Console.WriteLine($"[DEBUG] Processing enrolled course: {courseId}");
+                    
+                    var courseRef = _db.Collection("courses").Document(courseId);
+                    var courseSnapshot = await courseRef.GetSnapshotAsync();
+
+                    if (courseSnapshot.Exists)
                     {
-                        CourseId = courseId,
-                        Name = courseSnapshot.ContainsField("name") ? courseSnapshot.GetValue<string>("name") :
-                               courseSnapshot.ContainsField("Name") ? courseSnapshot.GetValue<string>("Name") : "(未命名)",
-                        Description = courseSnapshot.ContainsField("description") ? courseSnapshot.GetValue<string>("description") :
-                                    courseSnapshot.ContainsField("Description") ? courseSnapshot.GetValue<string>("Description") : "",
-                        JoinedAt = doc.ContainsField("JoinedAt") ? doc.GetValue<DateTime>("JoinedAt") : DateTime.MinValue,
-                        Status = doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Active"
-                    });
+                        courses.Add(new
+                        {
+                            CourseId = courseId,
+                            Name = courseSnapshot.ContainsField("name") ? courseSnapshot.GetValue<string>("name") :
+                                   courseSnapshot.ContainsField("Name") ? courseSnapshot.GetValue<string>("Name") : "(未命名)",
+                            Description = courseSnapshot.ContainsField("description") ? courseSnapshot.GetValue<string>("description") :
+                                        courseSnapshot.ContainsField("Description") ? courseSnapshot.GetValue<string>("Description") : "",
+                            JoinedAt = doc.ContainsField("JoinedAt") ? doc.GetValue<DateTime>("JoinedAt") : DateTime.MinValue,
+                            Status = doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Active"
+                        });
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[WARNING] Course {courseId} not found in courses collection");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine($"[WARNING] Course {courseId} not found in courses collection");
-                }
-            }
 
-            Console.WriteLine($"[DEBUG] Returning {courses.Count} enrolled courses");
-            return Ok(courses);
+                Console.WriteLine($"[DEBUG] Returning {courses.Count} enrolled courses from Firestore");
+                return Ok(courses);
+            }
+            else
+            {
+                // Mock data - return empty list for now since we don't have member enrollment tracking in mock mode
+                Console.WriteLine($"[DEBUG] Using mock data - returning empty enrollment list for member {memberId}");
+                
+                return Ok(new List<object>());
+            }
         }
         catch (Exception ex)
         {
