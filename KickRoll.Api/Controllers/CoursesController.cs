@@ -54,19 +54,53 @@ public class CoursesController : ControllerBase
     [HttpGet("list")]
     public async Task<IActionResult> GetAllCourses()
     {
-        var snapshot = await _db.Collection("courses").GetSnapshotAsync();
-
-        var courses = snapshot.Documents.Select(doc => new
+        try
         {
-            CourseId = doc.Id,
-            Name = doc.ContainsField("name") ? doc.GetValue<string>("name") : "(未命名)",
-            Description = doc.ContainsField("description") ? doc.GetValue<string>("description") : "",
-            InstructorId = doc.ContainsField("instructorId") ? doc.GetValue<string>("instructorId") : "",
-            Capacity = doc.ContainsField("capacity") ? doc.GetValue<int>("capacity") : 0,
-            Status = doc.ContainsField("status") ? doc.GetValue<string>("status") : "Active"
-        }).ToList();
+            var snapshot = await _db.Collection("courses").GetSnapshotAsync();
+            
+            Console.WriteLine($"[DEBUG] Found {snapshot.Documents.Count} course documents");
 
-        return Ok(courses);
+            var courses = new List<object>();
+            
+            foreach (var doc in snapshot.Documents)
+            {
+                Console.WriteLine($"[DEBUG] Course doc ID: {doc.Id}, Exists: {doc.Exists}");
+                
+                if (doc.Exists)
+                {
+                    // Print all fields for debugging
+                    var fields = doc.ToDictionary();
+                    Console.WriteLine($"[DEBUG] Course fields: {string.Join(", ", fields.Keys)}");
+                    
+                    courses.Add(new
+                    {
+                        CourseId = doc.Id,
+                        Name = doc.ContainsField("name") ? doc.GetValue<string>("name") : 
+                               doc.ContainsField("Name") ? doc.GetValue<string>("Name") : "(未命名)",
+                        Description = doc.ContainsField("description") ? doc.GetValue<string>("description") :
+                                    doc.ContainsField("Description") ? doc.GetValue<string>("Description") : "",
+                        InstructorId = doc.ContainsField("instructorId") ? doc.GetValue<string>("instructorId") :
+                                     doc.ContainsField("InstructorId") ? doc.GetValue<string>("InstructorId") : "",
+                        Capacity = doc.ContainsField("capacity") ? doc.GetValue<int>("capacity") :
+                                 doc.ContainsField("Capacity") ? doc.GetValue<int>("Capacity") : 0,
+                        Status = doc.ContainsField("status") ? doc.GetValue<string>("status") :
+                               doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Active",
+                        StartDate = doc.ContainsField("startDate") ? doc.GetValue<DateTime?>("startDate") :
+                                  doc.ContainsField("StartDate") ? doc.GetValue<DateTime?>("StartDate") : null,
+                        EndDate = doc.ContainsField("endDate") ? doc.GetValue<DateTime?>("endDate") :
+                                doc.ContainsField("EndDate") ? doc.GetValue<DateTime?>("EndDate") : null
+                    });
+                }
+            }
+
+            Console.WriteLine($"[DEBUG] Returning {courses.Count} courses");
+            return Ok(courses);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetAllCourses failed: {ex.Message}");
+            return StatusCode(500, new { message = $"載入課程失敗: {ex.Message}" });
+        }
     }
 
     [HttpGet("{courseId}")]
@@ -153,31 +187,52 @@ public class CoursesController : ControllerBase
             return BadRequest(new { message = "成員 ID 不可為空" });
         }
 
-        var memberCoursesSnapshot = await _db.Collection("members").Document(memberId)
-            .Collection("courses").GetSnapshotAsync();
-
-        var courses = new List<object>();
-
-        foreach (var doc in memberCoursesSnapshot.Documents)
+        try
         {
-            var courseId = doc.GetValue<string>("CourseId");
-            var courseRef = _db.Collection("courses").Document(courseId);
-            var courseSnapshot = await courseRef.GetSnapshotAsync();
+            Console.WriteLine($"[DEBUG] Getting courses for member: {memberId}");
+            
+            var memberCoursesSnapshot = await _db.Collection("members").Document(memberId)
+                .Collection("courses").GetSnapshotAsync();
 
-            if (courseSnapshot.Exists)
+            Console.WriteLine($"[DEBUG] Found {memberCoursesSnapshot.Documents.Count} enrolled courses for member {memberId}");
+
+            var courses = new List<object>();
+
+            foreach (var doc in memberCoursesSnapshot.Documents)
             {
-                courses.Add(new
-                {
-                    CourseId = courseId,
-                    Name = courseSnapshot.ContainsField("name") ? courseSnapshot.GetValue<string>("name") : "(未命名)",
-                    Description = courseSnapshot.ContainsField("description") ? courseSnapshot.GetValue<string>("description") : "",
-                    JoinedAt = doc.ContainsField("JoinedAt") ? doc.GetValue<DateTime>("JoinedAt") : DateTime.MinValue,
-                    Status = doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Active"
-                });
-            }
-        }
+                var courseId = doc.GetValue<string>("CourseId");
+                Console.WriteLine($"[DEBUG] Processing enrolled course: {courseId}");
+                
+                var courseRef = _db.Collection("courses").Document(courseId);
+                var courseSnapshot = await courseRef.GetSnapshotAsync();
 
-        return Ok(courses);
+                if (courseSnapshot.Exists)
+                {
+                    courses.Add(new
+                    {
+                        CourseId = courseId,
+                        Name = courseSnapshot.ContainsField("name") ? courseSnapshot.GetValue<string>("name") :
+                               courseSnapshot.ContainsField("Name") ? courseSnapshot.GetValue<string>("Name") : "(未命名)",
+                        Description = courseSnapshot.ContainsField("description") ? courseSnapshot.GetValue<string>("description") :
+                                    courseSnapshot.ContainsField("Description") ? courseSnapshot.GetValue<string>("Description") : "",
+                        JoinedAt = doc.ContainsField("JoinedAt") ? doc.GetValue<DateTime>("JoinedAt") : DateTime.MinValue,
+                        Status = doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Active"
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"[WARNING] Course {courseId} not found in courses collection");
+                }
+            }
+
+            Console.WriteLine($"[DEBUG] Returning {courses.Count} enrolled courses");
+            return Ok(courses);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetMemberCourses failed: {ex.Message}");
+            return StatusCode(500, new { message = $"載入成員課程失敗: {ex.Message}" });
+        }
     }
 
     [HttpDelete("{courseId}/members/{memberId}")]
