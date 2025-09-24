@@ -252,85 +252,107 @@ $1- 建立方案（次數包 / 月票）、售出並指派給會員。
 ### 範例文件 資料結構（Firestore 建議）
 > 命名以複數集合為主；必要時建立複合索引。
 
+### ⚠️ 重要更新：Firestore 欄位命名規則變更
+**更新日期**: 2025年1月
+
+所有 Firestore 資料庫欄位名稱已統一改為 **PascalCase（大寫駝峰式）** 命名規則：
+
+| 舊欄位名稱 (camelCase) | 新欄位名稱 (PascalCase) |
+|----------------------|----------------------|
+| `name` | `Name` |
+| `phone` | `Phone` |
+| `gender` | `Gender` |
+| `status` | `Status` |
+| `teamId` | `TeamId` |
+| `teamIds` | `TeamIds` |
+| `birthdate` | `Birthdate` |
+| `location` | `Location` |
+| `capacity` | `Capacity` |
+| `coachIds` | `CoachIds` |
+| `startAt` | `StartAt` |
+| `endAt` | `EndAt` |
+| `sessionId` | `SessionId` |
+| `memberId` | `MemberId` |
+
 ### Collections & Fields
 - **users**（僅登入帳號與角色）
   - `uid` (string, docId)
-  - `role` (enum: admin|coach|member|parent)
-  - `displayName`, `phone`, `email`
-  - `memberId` (ref to members, for member/parent)
+  - `Role` (enum: admin|coach|member|parent)
+  - `DisplayName`, `Phone`, `Email`
+  - `MemberId` (ref to members, for member/parent)
 
 - **members**（會員主檔）
-  - `memberId` (docId)
-  - `name`, `birthdate`, `gender`, `phone`, `parentContacts[]`
-  - `teamIds[]`（所屬隊別）
-  - `status` (active|paused|left)
+  - `MemberId` (docId)
+  - `Name`, `Birthdate`, `Gender`, `Phone`, `ParentContacts[]`
+  - `TeamIds[]`（所屬隊別）
+  - `Status` (active|paused|left)
 
 - **teams**
-  - `teamId` (docId)
-  - `name`, `location`, `capacity`, `coachIds[]`
-  - `scheduleHints`（例：每週二四 18:00）
+  - `TeamId` (docId)
+  - `Name`, `Location`, `Capacity`, `CoachIds[]`
+  - `ScheduleHints`（例：每週二四 18:00）
 
 - **class_sessions**（單堂課）
-  - `sessionId` (docId)
-  - `teamId`, `coachIds[]`
-  - `startAt` (timestamp), `endAt` (timestamp)
-  - `location`, `capacity`, `status` (scheduled|canceled|done)
-  - `waitlist[]`（memberIds）
+  - `SessionId` (docId)
+  - `TeamId`, `CoachIds[]`
+  - `StartAt` (timestamp), `EndAt` (timestamp)
+  - `Location`, `Capacity`, `Status` (scheduled|canceled|done)
+  - `Waitlist[]`（memberIds）
 
 - **attendances**（出勤紀錄：高頻寫入，單獨集合）
-  - `attendanceId` (docId)
-  - `sessionId`, `memberId`
-  - `status` (present|late|absent|excused)
-  - `checkInAt` (timestamp), `method` (qr|manual|import)
-  - `createdBy`, `updatedBy`, `auditLog[]`
-  - **索引**：`sessionId+status`, `memberId+checkInAt desc`
+  - `AttendanceId` (docId)
+  - `SessionId`, `MemberId`
+  - `Status` (present|late|absent|excused)
+  - `CheckInAt` (timestamp), `Method` (qr|manual|import)
+  - `CreatedBy`, `UpdatedBy`, `AuditLog[]`
+  - **索引**：`SessionId+Status`, `MemberId+CheckInAt desc`
 
 - **packages**（方案定義）
-  - `packageId` (docId)
-  - `name`, `type` (count|period)
-  - `count`（次數；type=count）
-  - `periodDays`（天數；type=period）
-  - `latePolicy`（遲到是否扣堂）
+  - `PackageId` (docId)
+  - `Name`, `Type` (count|period)
+  - `Count`（次數；type=count）
+  - `PeriodDays`（天數；type=period）
+  - `LatePolicy`（遲到是否扣堂）
 
 - **member_packages**（會員購買方案，避免在 members 內嵌）
-  - `memberPackageId` (docId)
-  - `memberId`, `packageId`
-  - `remainingCount`（type=count）
-  - `startAt`, `expireAt`（type=period）
-  - `status` (active|expired|frozen)
+  - `MemberPackageId` (docId)
+  - `MemberId`, `PackageId`
+  - `RemainingCount`（type=count）
+  - `StartAt`, `ExpireAt`（type=period）
+  - `Status` (active|expired|frozen)
 
 - **deductions**（扣課紀錄）
-  - `deductionId` (docId)
-  - `attendanceId`, `memberPackageId`
-  - `amount` (int; 通常 1)
-  - `reason` (auto|manual|late|no-show|other)
-  - `createdAt`
+  - `DeductionId` (docId)
+  - `AttendanceId`, `MemberPackageId`
+  - `Amount` (int; 通常 1)
+  - `Reason` (auto|manual|late|no-show|other)
+  - `CreatedAt`
 
 - **payments**（若開金流）
-  - `paymentId`, `memberId`, `memberPackageId`, `amount`, `method`, `paidAt`, `txRef`
+  - `PaymentId`, `MemberId`, `MemberPackageId`, `Amount`, `Method`, `PaidAt`, `TxRef`
 
 ### 範例文件（JSON）
 ```json
-// attendances/{attendanceId}
+// attendances/{AttendanceId}
 {
-  "sessionId": "S_2025_09_20_T1_1800",
-  "memberId": "M_000123",
-  "status": "present",
-  "checkInAt": 1758295200000,
-  "method": "qr",
-  "createdBy": "coach_01"
+  "SessionId": "S_2025_09_20_T1_1800",
+  "MemberId": "M_000123",
+  "Status": "present",
+  "CheckInAt": 1758295200000,
+  "Method": "qr",
+  "CreatedBy": "coach_01"
 }
 ```
 
 ---
 
 ## 7) QR 簽到與離線策略
-- **QR 內容格式**：`clubId|sessionId|memberId|exp|nonce|sig`
+- **QR 內容格式**：`clubId|SessionId|MemberId|exp|nonce|sig`
   - `sig` 為後端以私鑰簽名（或 HMAC）→ App 無網亦可做基本驗章。
 - **掃碼流程**：
   1) 教練端掃碼 → 驗簽成功 → 先寫本地 Queue（離線）並標記畫面「已簽」。
   2) 線上時：背景批次同步到 Firestore；
-     - 使用 `sessionId+memberId` 作為 **自然鍵** 去重（Cloud Function 以 transaction/upsert）。
+     - 使用 `SessionId+MemberId` 作為 **自然鍵** 去重（Cloud Function 以 transaction/upsert）。
 - **防重與回寫**：
   - Cloud Function 成功寫入→ 回傳成功；若重複→ 回傳 200 + `duplicate=true`，前端只顯示「已簽過」。
 
