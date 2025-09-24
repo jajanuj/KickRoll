@@ -8,24 +8,24 @@ public class ClassSession
     [FirestoreDocumentId]
     public string? SessionId { get; set; }
 
-    [FirestoreProperty]
+    [FirestoreProperty(Name = "TeamId")]
     public string? TeamId { get; set; }
 
-    [FirestoreProperty]
+    [FirestoreProperty(Name = "CoachIds")]
     public List<string> CoachIds { get; set; } = new();
 
-    [FirestoreProperty]
+    [FirestoreProperty(Name = "StartAt")]
     public DateTime StartAt { get; set; }
 
-    [FirestoreProperty]
+    [FirestoreProperty(Name = "EndAt")]
     public DateTime EndAt { get; set; }
 
-    [FirestoreProperty]
+    [FirestoreProperty(Name = "Location")]
     public string? Location { get; set; }
 
-    [FirestoreProperty]
+    [FirestoreProperty(Name = "Capacity")]
     public int Capacity { get; set; }
 
-    [FirestoreProperty]
+    [FirestoreProperty(Name = "Status")]
     public string Status { get; set; } = "Scheduled";
 }

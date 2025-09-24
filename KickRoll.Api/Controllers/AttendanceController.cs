@@ -6,13 +6,13 @@ namespace KickRoll.Api.Controllers;
 [FirestoreData]
 public class AttendanceRecord
 {
-   [FirestoreProperty]
+   [FirestoreProperty(Name = "SessionId")]
    public string SessionId { get; set; }
 
-   [FirestoreProperty]
+   [FirestoreProperty(Name = "MemberId")]
    public string MemberId { get; set; }
 
-   [FirestoreProperty]
+   [FirestoreProperty(Name = "Status")]
    public string Status { get; set; } // Present / Absent
 }
 
@@ -34,11 +34,11 @@ public class AttendanceController : ControllerBase
 
       foreach (var record in records)
       {
-         // ¥Î SessionId + MemberId ²Õ¦¨°ß¤@ªº¤å¥ó ID
+         // ï¿½ï¿½ SessionId + MemberId ï¿½Õ¦ï¿½ï¿½ß¤@ï¿½ï¿½ï¿½ï¿½ï¿½ ID
          var docId = $"{record.SessionId}_{record.MemberId}";
          var docRef = _db.Collection("attendance").Document(docId);
 
-         batch.Set(docRef, record, SetOptions.Overwrite); // ÂÐ»\¦P¤@µ§
+         batch.Set(docRef, record, SetOptions.Overwrite); // ï¿½Ð»\ï¿½Pï¿½@ï¿½ï¿½
       }
 
       await batch.CommitAsync();

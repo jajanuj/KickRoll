@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KickRoll.App", "KickRoll.Ap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KickRoll.Api", "KickRoll.Api\KickRoll.Api.csproj", "{8580CD31-7F20-47FB-A9B2-83F5FDE69B74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KickRoll.Api.Tests", "KickRoll.Api.Tests\KickRoll.Api.Tests.csproj", "{AB743040-D152-4411-9815-3BD9BA61A64A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{8580CD31-7F20-47FB-A9B2-83F5FDE69B74}.Release|x64.Build.0 = Release|Any CPU
 		{8580CD31-7F20-47FB-A9B2-83F5FDE69B74}.Release|x86.ActiveCfg = Release|Any CPU
 		{8580CD31-7F20-47FB-A9B2-83F5FDE69B74}.Release|x86.Build.0 = Release|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Debug|x64.Build.0 = Debug|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Debug|x86.Build.0 = Debug|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Release|x64.ActiveCfg = Release|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Release|x64.Build.0 = Release|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Release|x86.ActiveCfg = Release|Any CPU
+		{AB743040-D152-4411-9815-3BD9BA61A64A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

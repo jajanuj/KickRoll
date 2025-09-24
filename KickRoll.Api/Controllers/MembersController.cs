@@ -6,14 +6,14 @@ namespace KickRoll.Api.Controllers;
 [FirestoreData]
 public class Member
 {
-   [FirestoreProperty] public string MemberId { get; set; }
-   [FirestoreProperty] public string Name { get; set; }
-   [FirestoreProperty] public string Phone { get; set; }
-   [FirestoreProperty] public string Gender { get; set; }
-   [FirestoreProperty] public string Status { get; set; }
-   [FirestoreProperty] public string TeamId { get; set; }
-   [FirestoreProperty] public List<string> TeamIds { get; set; } = new();
-   [FirestoreProperty] public DateTime? Birthdate { get; set; }
+   [FirestoreProperty(Name = "MemberId")] public string MemberId { get; set; }
+   [FirestoreProperty(Name = "Name")] public string Name { get; set; }
+   [FirestoreProperty(Name = "Phone")] public string Phone { get; set; }
+   [FirestoreProperty(Name = "Gender")] public string Gender { get; set; }
+   [FirestoreProperty(Name = "Status")] public string Status { get; set; }
+   [FirestoreProperty(Name = "TeamId")] public string TeamId { get; set; }
+   [FirestoreProperty(Name = "TeamIds")] public List<string> TeamIds { get; set; } = new();
+   [FirestoreProperty(Name = "Birthdate")] public DateTime? Birthdate { get; set; }
 }
 
 public class CreateMemberRequest
@@ -42,13 +42,13 @@ public class MembersController : ControllerBase
    public async Task<IActionResult> GetMembersByTeam(string teamId)
    {
       var snapshot = await _db.Collection("members")
-          .WhereArrayContains("teamIds", teamId)
+          .WhereArrayContains("TeamIds", teamId)
           .GetSnapshotAsync();
 
       var members = snapshot.Documents.Select(doc => new
       {
          MemberId = doc.Id,
-         Name = doc.ContainsField("name") ? doc.GetValue<string>("name") : "(未命名)"
+         Name = doc.ContainsField("Name") ? doc.GetValue<string>("Name") : "(未命名)"
       }).ToList();
 
       return Ok(members);
@@ -81,8 +81,8 @@ public class MembersController : ControllerBase
          var existingMembersSnapshot = await _db.Collection("members").GetSnapshotAsync();
          var duplicateByName = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
             doc.Id != memberId && // Exclude current member
-            doc.ContainsField("name") && 
-            string.Equals(doc.GetValue<string>("name"), member.Name, StringComparison.OrdinalIgnoreCase));
+            doc.ContainsField("Name") && 
+            string.Equals(doc.GetValue<string>("Name"), member.Name, StringComparison.OrdinalIgnoreCase));
 
          if (duplicateByName != null)
          {
@@ -95,22 +95,22 @@ public class MembersController : ControllerBase
       var updates = new Dictionary<string, object>();
 
       if (!string.IsNullOrWhiteSpace(member.Name))
-         updates["name"] = member.Name;
+         updates["Name"] = member.Name;
 
       if (!string.IsNullOrWhiteSpace(member.Phone))
-         updates["phone"] = member.Phone;
+         updates["Phone"] = member.Phone;
 
       if (!string.IsNullOrWhiteSpace(member.Gender))
-         updates["gender"] = member.Gender;
+         updates["Gender"] = member.Gender;
 
       if (member.Birthdate.HasValue)
-         updates["birthdate"] = member.Birthdate.Value;
+         updates["Birthdate"] = member.Birthdate.Value;
 
       if (!string.IsNullOrWhiteSpace(member.Status))
-         updates["status"] = member.Status;
+         updates["Status"] = member.Status;
 
-      updates["teamId"] = member.TeamId;
-      updates["teamIds"] = member.TeamIds ?? new List<string>();
+      updates["TeamId"] = member.TeamId;
+      updates["TeamIds"] = member.TeamIds ?? new List<string>();
 
       await docRef.SetAsync(updates, SetOptions.MergeAll);
 
@@ -151,8 +151,8 @@ public class MembersController : ControllerBase
          .Select(doc => new
          {
             MemberId = doc.Id,
-            Name = doc.ContainsField("name") ? doc.GetValue<string>("name") : "(未命名)",
-            Status = doc.ContainsField("status") ? doc.GetValue<string>("status") : "unknown"
+            Name = doc.ContainsField("Name") ? doc.GetValue<string>("Name") : "(未命名)",
+            Status = doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "unknown"
          })
          .ToList();
 
@@ -184,8 +184,8 @@ public class MembersController : ControllerBase
          // Phone numbers can be shared (e.g., family members using parent's phone)
          var existingMembersSnapshot = await _db.Collection("members").GetSnapshotAsync();
          var duplicateByName = existingMembersSnapshot.Documents.FirstOrDefault(doc =>
-            doc.ContainsField("name") && 
-            string.Equals(doc.GetValue<string>("name"), request.Name, StringComparison.OrdinalIgnoreCase));
+            doc.ContainsField("Name") && 
+            string.Equals(doc.GetValue<string>("Name"), request.Name, StringComparison.OrdinalIgnoreCase));
 
          if (duplicateByName != null)
          {
@@ -197,13 +197,13 @@ public class MembersController : ControllerBase
          
          var newMember = new Dictionary<string, object>
          {
-            ["name"] = request.Name,
-            ["phone"] = request.Phone,
-            ["gender"] = request.Gender ?? "",
-            ["status"] = request.Status ?? "active",
-            ["teamId"] = request.TeamId ?? "",
-            ["teamIds"] = request.TeamIds ?? new List<string>(),
-            ["birthdate"] = request.Birthdate ?? DateTime.UtcNow
+            ["Name"] = request.Name,
+            ["Phone"] = request.Phone,
+            ["Gender"] = request.Gender ?? "",
+            ["Status"] = request.Status ?? "active",
+            ["TeamId"] = request.TeamId ?? "",
+            ["TeamIds"] = request.TeamIds ?? new List<string>(),
+            ["Birthdate"] = request.Birthdate ?? DateTime.UtcNow
          };
 
          await newDocRef.SetAsync(newMember);
@@ -227,18 +227,18 @@ public class MembersController : ControllerBase
          return NotFound();
       }
 
-      Console.WriteLine($"[DEBUG] Member snapshot ID: {snapshot.Id}, Date: {snapshot.GetValue<DateTime>("birthdate")}");
+      Console.WriteLine($"[DEBUG] Member snapshot ID: {snapshot.Id}, Date: {snapshot.GetValue<DateTime>("Birthdate")}");
 
       var member = new
       {
          MemberId = snapshot.Id,
-         Name = snapshot.ContainsField("name") ? snapshot.GetValue<string>("name") : "",
-         Phone = snapshot.ContainsField("phone") ? snapshot.GetValue<string>("phone") : "",
-         Gender = snapshot.ContainsField("gender") ? snapshot.GetValue<string>("gender") : "",
-         Birthdate = snapshot.ContainsField("birthdate") ? snapshot.GetValue<DateTime>("birthdate") : DateTime.MinValue,
-         Status = snapshot.ContainsField("status") ? snapshot.GetValue<string>("status") : "unknown",
-         TeamId = snapshot.ContainsField("teamId") ? snapshot.GetValue<string>("teamId") : "unknown",
-         TeamIds = snapshot.ContainsField("teamIds") ? snapshot.GetValue<List<string>>("teamIds") : new List<string>()
+         Name = snapshot.ContainsField("Name") ? snapshot.GetValue<string>("Name") : "",
+         Phone = snapshot.ContainsField("Phone") ? snapshot.GetValue<string>("Phone") : "",
+         Gender = snapshot.ContainsField("Gender") ? snapshot.GetValue<string>("Gender") : "",
+         Birthdate = snapshot.ContainsField("Birthdate") ? snapshot.GetValue<DateTime>("Birthdate") : DateTime.MinValue,
+         Status = snapshot.ContainsField("Status") ? snapshot.GetValue<string>("Status") : "unknown",
+         TeamId = snapshot.ContainsField("TeamId") ? snapshot.GetValue<string>("TeamId") : "unknown",
+         TeamIds = snapshot.ContainsField("TeamIds") ? snapshot.GetValue<List<string>>("TeamIds") : new List<string>()
       };
 
       return Ok(member);
