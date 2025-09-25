@@ -1,18 +1,18 @@
-# Member Plans API Endpoints
+# 會員方案 API 端點
 
-## Overview
-This document demonstrates the Member Plans API endpoints that have been implemented according to the specifications.
+## 概述
+本文件說明已實現的會員方案 API 端點，遵循規範要求。
 
-## Endpoints
+## API 端點
 
-### 1. Create Member Plan
+### 1. 建立會員方案
 **POST** `/api/members/{memberId}/plans`
 
-Request body (camelCase JSON):
+請求主體 (camelCase JSON):
 ```json
 {
   "type": "credit_pack",
-  "name": "10 Class Pack",
+  "name": "10堂課程包",
   "totalCredits": 10,
   "remainingCredits": 10,
   "validFrom": "2024-01-01T00:00:00Z",
@@ -21,14 +21,14 @@ Request body (camelCase JSON):
 }
 ```
 
-Response:
+回應:
 ```json
 {
   "success": true,
   "plan": {
     "id": "generated-plan-id",
     "type": "credit_pack",
-    "name": "10 Class Pack",
+    "name": "10堂課程包",
     "totalCredits": 10,
     "remainingCredits": 10,
     "validFrom": "2024-01-01T00:00:00Z",
@@ -40,19 +40,19 @@ Response:
 }
 ```
 
-### 2. Get Member Plans
+### 2. 查詢會員方案
 **GET** `/api/members/{memberId}/plans?status={status}`
 
-Query parameters:
-- `status` (optional): "active", "expired", "suspended"
+查詢參數:
+- `status` (可選): "active"(啟用), "expired"(過期), "suspended"(暫停)
 
-Response:
+回應:
 ```json
 [
   {
     "id": "plan-id-1",
     "type": "credit_pack",
-    "name": "10 Class Pack",
+    "name": "10堂課程包",
     "totalCredits": 10,
     "remainingCredits": 8,
     "validFrom": "2024-01-01T00:00:00Z",
@@ -64,7 +64,7 @@ Response:
   {
     "id": "plan-id-2",
     "type": "time_pass",
-    "name": "Monthly Pass",
+    "name": "月票",
     "totalCredits": null,
     "remainingCredits": 0,
     "validFrom": "2024-01-01T00:00:00Z",
@@ -76,10 +76,10 @@ Response:
 ]
 ```
 
-### 3. Update Member Plan
+### 3. 更新會員方案
 **PATCH** `/api/members/{memberId}/plans/{planId}`
 
-Request body (only include fields to update):
+請求主體 (僅包含要更新的欄位):
 ```json
 {
   "remainingCredits": 5,
@@ -87,67 +87,67 @@ Request body (only include fields to update):
 }
 ```
 
-Response:
+回應:
 ```json
 {
   "success": true,
-  "message": "Plan updated successfully"
+  "message": "方案更新成功"
 }
 ```
 
-### 4. Adjust Plan Credits
+### 4. 調整方案堂數
 **POST** `/api/members/{memberId}/plans/{planId}:adjust`
 
-Request body:
+請求主體:
 ```json
 {
   "delta": -1,
-  "reason": "Class attended"
+  "reason": "上課出席"
 }
 ```
 
-Response:
+回應:
 ```json
 {
   "success": true,
-  "message": "Credits adjusted successfully",
+  "message": "堂數調整成功",
   "newRemainingCredits": 7,
   "delta": -1
 }
 ```
 
-## Firestore Structure
+## Firestore 資料結構
 
-The data is stored in Firestore with PascalCase field names:
+資料以 PascalCase 欄位名稱儲存在 Firestore：
 
-**Collection**: `members/{MemberId}/plans/{PlanId}`
+**集合路徑**: `members/{MemberId}/plans/{PlanId}`
 
-Document fields (PascalCase in Firestore):
-- `Type`: "credit_pack" | "time_pass"
-- `Name`: string
-- `TotalCredits`: number (can be null for time_pass)
-- `RemainingCredits`: number  
-- `ValidFrom`: Timestamp (can be null)
-- `ValidUntil`: Timestamp (required for time_pass, can be null for credit_pack)
-- `Status`: "active" | "expired" | "suspended"
-- `CreatedAt`: Timestamp
-- `UpdatedAt`: Timestamp
+文件欄位 (Firestore 中使用 PascalCase):
+- `Type`: "credit_pack"(堂數包) | "time_pass"(期限票)
+- `Name`: 字串
+- `TotalCredits`: 數字 (time_pass 可為 null)
+- `RemainingCredits`: 數字  
+- `ValidFrom`: 時間戳記 (可為 null)
+- `ValidUntil`: 時間戳記 (time_pass 必填；credit_pack 可為 null)
+- `Status`: "active"(啟用) | "expired"(過期) | "suspended"(暫停)
+- `CreatedAt`: 建立時間戳記
+- `UpdatedAt`: 更新時間戳記
 
-## Business Rules Implemented
+## 實現的商業規則
 
-1. **RemainingCredits ≥ 0**: Cannot go negative
-2. **Type validation**: Must be "credit_pack" or "time_pass"
-3. **Status validation**: Must be "active", "expired", or "suspended"
-4. **ValidUntil required for time_pass**: Time passes must have an expiration date
-5. **Auto-expiration**: Plans are automatically marked as "expired" when ValidUntil is in the past
-6. **MergeAll updates**: Uses Firestore SetOptions.MergeAll to avoid overwriting existing fields
+1. **RemainingCredits ≥ 0**: 剩餘堂數不可為負數
+2. **Type 驗證**: 必須為 "credit_pack" 或 "time_pass"
+3. **Status 驗證**: 必須為 "active"、"expired" 或 "suspended"
+4. **time_pass 需要 ValidUntil**: 期限票必須有到期日期
+5. **自動過期**: 當 ValidUntil 超過當前時間時，方案自動標記為 "expired"
+6. **MergeAll 更新**: 使用 Firestore SetOptions.MergeAll 避免覆蓋現有欄位
 
-## Features
+## 功能特色
 
-- **PascalCase Firestore fields**: All Firestore document fields use PascalCase naming
-- **camelCase API**: JSON requests/responses use camelCase for external API consistency
-- **FirestoreProperty mapping**: Uses `[FirestoreProperty("PascalName")]` for proper field mapping
-- **Comprehensive validation**: Business rule validation for all operations
-- **Automatic expiration checking**: Expired plans are automatically updated when retrieved
-- **Flexible updates**: PATCH endpoint only updates provided fields
-- **Credit adjustments**: Dedicated endpoint for credit adjustments with delta values
+- **PascalCase Firestore 欄位**: 所有 Firestore 文件欄位使用 PascalCase 命名
+- **camelCase API**: JSON 請求/回應使用 camelCase 保持外部 API 一致性
+- **FirestoreProperty 對應**: 使用 `[FirestoreProperty("PascalName")]` 進行正確的欄位對應
+- **完整驗證**: 所有操作都有商業規則驗證
+- **自動過期檢查**: 查詢時自動更新過期方案
+- **彈性更新**: PATCH 端點僅更新提供的欄位
+- **堂數調整**: 專用端點進行正負堂數調整

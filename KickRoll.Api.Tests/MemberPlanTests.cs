@@ -6,14 +6,14 @@ namespace KickRoll.Api.Tests;
 public class MemberPlanTests
 {
     [Fact]
-    public void MemberPlan_Should_Have_Required_Properties()
+    public void 會員方案_應包含所需屬性()
     {
-        // Arrange & Act
+        // 準備與執行
         var plan = new MemberPlan
         {
             Id = "test-plan",
             Type = "credit_pack",
-            Name = "10 Class Pack",
+            Name = "10堂課程包",
             TotalCredits = 10,
             RemainingCredits = 8,
             ValidFrom = Timestamp.GetCurrentTimestamp(),
@@ -23,10 +23,10 @@ public class MemberPlanTests
             UpdatedAt = Timestamp.GetCurrentTimestamp()
         };
 
-        // Assert
+        // 驗證
         Assert.Equal("test-plan", plan.Id);
         Assert.Equal("credit_pack", plan.Type);
-        Assert.Equal("10 Class Pack", plan.Name);
+        Assert.Equal("10堂課程包", plan.Name);
         Assert.Equal(10, plan.TotalCredits);
         Assert.Equal(8, plan.RemainingCredits);
         Assert.NotNull(plan.ValidFrom);
@@ -39,20 +39,20 @@ public class MemberPlanTests
     [Theory]
     [InlineData("credit_pack")]
     [InlineData("time_pass")]
-    public void MemberPlan_Should_Support_Valid_Types(string planType)
+    public void 會員方案_應支援有效的方案類型(string planType)
     {
-        // Arrange & Act
+        // 準備與執行
         var plan = new MemberPlan
         {
             Type = planType,
-            Name = "Test Plan",
+            Name = "測試方案",
             RemainingCredits = 5,
             Status = "active",
             CreatedAt = Timestamp.GetCurrentTimestamp(),
             UpdatedAt = Timestamp.GetCurrentTimestamp()
         };
 
-        // Assert
+        // 驗證
         Assert.Equal(planType, plan.Type);
     }
 
@@ -60,43 +60,43 @@ public class MemberPlanTests
     [InlineData("active")]
     [InlineData("expired")]
     [InlineData("suspended")]
-    public void MemberPlan_Should_Support_Valid_Statuses(string status)
+    public void 會員方案_應支援有效的狀態值(string status)
     {
-        // Arrange & Act
+        // 準備與執行
         var plan = new MemberPlan
         {
             Type = "credit_pack",
-            Name = "Test Plan",
+            Name = "測試方案",
             RemainingCredits = 5,
             Status = status,
             CreatedAt = Timestamp.GetCurrentTimestamp(),
             UpdatedAt = Timestamp.GetCurrentTimestamp()
         };
 
-        // Assert
+        // 驗證
         Assert.Equal(status, plan.Status);
     }
 
     [Fact]
-    public void MemberPlan_Default_Status_Should_Be_Active()
+    public void 會員方案_預設狀態應為啟用()
     {
-        // Arrange & Act
+        // 準備與執行
         var plan = new MemberPlan();
 
-        // Assert
+        // 驗證
         Assert.Equal("active", plan.Status);
     }
 
     [Fact]
-    public void MemberPlan_Should_Allow_Null_TotalCredits_For_TimePasses()
+    public void 會員方案_期限票允許總堂數為空值()
     {
-        // Arrange & Act
+        // 準備與執行
         var plan = new MemberPlan
         {
             Type = "time_pass",
-            Name = "Monthly Pass",
-            TotalCredits = null, // Time passes don't have total credits
-            RemainingCredits = 0, // Not applicable for time passes
+            Name = "月票",
+            TotalCredits = null, // 期限票沒有總堂數
+            RemainingCredits = 0, // 期限票不適用剩餘堂數
             ValidFrom = Timestamp.GetCurrentTimestamp(),
             ValidUntil = Timestamp.FromDateTime(DateTime.UtcNow.AddMonths(1)),
             Status = "active",
@@ -104,19 +104,19 @@ public class MemberPlanTests
             UpdatedAt = Timestamp.GetCurrentTimestamp()
         };
 
-        // Assert
+        // 驗證
         Assert.Null(plan.TotalCredits);
         Assert.Equal("time_pass", plan.Type);
     }
 
     [Fact]
-    public void CreateMemberPlanRequest_Should_Have_Required_Properties()
+    public void 建立會員方案請求_應包含所需屬性()
     {
-        // Arrange & Act
+        // 準備與執行
         var request = new CreateMemberPlanRequest
         {
             Type = "credit_pack",
-            Name = "Test Plan",
+            Name = "測試方案",
             TotalCredits = 10,
             RemainingCredits = 10,
             ValidFrom = DateTime.UtcNow,
@@ -124,9 +124,9 @@ public class MemberPlanTests
             Status = "active"
         };
 
-        // Assert
+        // 驗證
         Assert.Equal("credit_pack", request.Type);
-        Assert.Equal("Test Plan", request.Name);
+        Assert.Equal("測試方案", request.Name);
         Assert.Equal(10, request.TotalCredits);
         Assert.Equal(10, request.RemainingCredits);
         Assert.NotNull(request.ValidFrom);
@@ -135,16 +135,16 @@ public class MemberPlanTests
     }
 
     [Fact]
-    public void AdjustCreditsRequest_Should_Support_Positive_And_Negative_Delta()
+    public void 調整堂數請求_應支援正負數差值()
     {
-        // Arrange & Act
-        var positiveRequest = new AdjustCreditsRequest { Delta = 5, Reason = "Manual add" };
-        var negativeRequest = new AdjustCreditsRequest { Delta = -2, Reason = "Class attended" };
+        // 準備與執行
+        var positiveRequest = new AdjustCreditsRequest { Delta = 5, Reason = "手動增加" };
+        var negativeRequest = new AdjustCreditsRequest { Delta = -2, Reason = "上課出席" };
 
-        // Assert
+        // 驗證
         Assert.Equal(5, positiveRequest.Delta);
-        Assert.Equal("Manual add", positiveRequest.Reason);
+        Assert.Equal("手動增加", positiveRequest.Reason);
         Assert.Equal(-2, negativeRequest.Delta);
-        Assert.Equal("Class attended", negativeRequest.Reason);
+        Assert.Equal("上課出席", negativeRequest.Reason);
     }
 }
