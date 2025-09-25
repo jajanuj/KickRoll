@@ -36,6 +36,7 @@
         </CollectionView>
 
         <Button Text="儲存成員" Clicked="OnSaveMemberClicked" />
+        <Button Text="管理方案" Clicked="OnManagePlansClicked" BackgroundColor="Purple" TextColor="White" />
         <Label x:Name="ResultLabel" TextColor="Red"/>
     </VerticalStackLayout>
 </ContentPage>

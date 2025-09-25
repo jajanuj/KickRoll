@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.AddMemberPlanPage"
+             Title="新增會員方案">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <!-- 會員資訊 -->
+            <Frame BackgroundColor="LightBlue" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="5">
+                    <Label x:Name="MemberNameLabel" Text="會員名稱" FontSize="16" FontAttributes="Bold"/>
+                    <Label x:Name="MemberIdLabel" Text="會員 ID" FontSize="12" TextColor="Gray"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- 方案類型 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="方案類型 *" FontSize="14" FontAttributes="Bold"/>
+                <Picker x:Name="TypePicker" Title="選擇方案類型" SelectedIndexChanged="OnTypeChanged">
+                    <Picker.Items>
+                        <x:String>credit_pack</x:String>
+                        <x:String>time_pass</x:String>
+                    </Picker.Items>
+                </Picker>
+                <Label x:Name="TypeHintLabel" Text="堂數包：按次計費 | 期限票：按時間計費" FontSize="12" TextColor="Gray"/>
+            </VerticalStackLayout>
+
+            <!-- 方案名稱 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="方案名稱 *" FontSize="14" FontAttributes="Bold"/>
+                <Entry x:Name="NameEntry" Placeholder="如：10堂課程包、月票" />
+                <Label x:Name="NameValidationLabel" TextColor="Red" IsVisible="False"/>
+            </VerticalStackLayout>
+
+            <!-- 總堂數 (僅堂數包顯示) -->
+            <VerticalStackLayout x:Name="TotalCreditsSection" Spacing="5" IsVisible="False">
+                <Label Text="總堂數" FontSize="14" FontAttributes="Bold"/>
+                <Entry x:Name="TotalCreditsEntry" Placeholder="如：10" Keyboard="Numeric"/>
+                <Label Text="堂數包的總堂數" FontSize="12" TextColor="Gray"/>
+            </VerticalStackLayout>
+
+            <!-- 剩餘堂數 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="剩餘堂數 *" FontSize="14" FontAttributes="Bold"/>
+                <Entry x:Name="RemainingCreditsEntry" Placeholder="如：10" Keyboard="Numeric"/>
+                <Label x:Name="RemainingCreditsHint" Text="堂數包：初始剩餘堂數 | 期限票：通常設為 0" FontSize="12" TextColor="Gray"/>
+                <Label x:Name="RemainingCreditsValidationLabel" TextColor="Red" IsVisible="False"/>
+            </VerticalStackLayout>
+
+            <!-- 生效日期 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="生效日期 (可選)" FontSize="14" FontAttributes="Bold"/>
+                <HorizontalStackLayout Spacing="10">
+                    <CheckBox x:Name="ValidFromCheckBox" CheckedChanged="OnValidFromCheckedChanged"/>
+                    <Label Text="設定生效日期" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+                <DatePicker x:Name="ValidFromPicker" IsVisible="False"/>
+            </VerticalStackLayout>
+
+            <!-- 到期日期 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="到期日期" FontSize="14" FontAttributes="Bold"/>
+                <HorizontalStackLayout Spacing="10">
+                    <CheckBox x:Name="ValidUntilCheckBox" CheckedChanged="OnValidUntilCheckedChanged"/>
+                    <Label x:Name="ValidUntilLabel" Text="設定到期日期 (期限票必須設定)" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+                <DatePicker x:Name="ValidUntilPicker" IsVisible="False"/>
+                <Label x:Name="ValidUntilValidationLabel" TextColor="Red" IsVisible="False"/>
+            </VerticalStackLayout>
+
+            <!-- 狀態 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="狀態" FontSize="14" FontAttributes="Bold"/>
+                <Picker x:Name="StatusPicker" Title="選擇狀態">
+                    <Picker.Items>
+                        <x:String>active</x:String>
+                        <x:String>suspended</x:String>
+                    </Picker.Items>
+                </Picker>
+            </VerticalStackLayout>
+
+            <!-- 按鈕 -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button x:Name="SaveButton" 
+                        Text="儲存方案" 
+                        Clicked="OnSavePlanClicked"
+                        BackgroundColor="Green" 
+                        TextColor="White"
+                        MinimumWidthRequest="120"/>
+                <Button Text="取消" 
+                        Clicked="OnCancelClicked"
+                        BackgroundColor="Gray" 
+                        TextColor="White"
+                        MinimumWidthRequest="120"/>
+            </HorizontalStackLayout>
+
+            <Label x:Name="ResultLabel" TextColor="Red" HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
