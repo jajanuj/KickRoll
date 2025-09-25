@@ -339,6 +339,9 @@ public class MembersController : ControllerBase
 
       try
       {
+         // Auto-expire plans before retrieving them
+         await CheckAndUpdateExpiredPlans(memberId);
+
          var plansCollection = _db.Collection("members").Document(memberId).Collection("plans");
          Query query = plansCollection;
 
@@ -502,6 +505,49 @@ public class MembersController : ControllerBase
       catch (Exception ex)
       {
          return StatusCode(500, new { error = $"Failed to adjust credits: {ex.Message}" });
+      }
+   }
+
+   // Helper method to check and update expired plans
+   private async Task CheckAndUpdateExpiredPlans(string memberId)
+   {
+      try
+      {
+         var plansCollection = _db.Collection("members").Document(memberId).Collection("plans");
+         var activeQuery = plansCollection.WhereEqualTo("Status", "active");
+         var activeSnapshot = await activeQuery.GetSnapshotAsync();
+
+         var now = Timestamp.GetCurrentTimestamp();
+         var batch = _db.StartBatch();
+         var hasExpiredPlans = false;
+
+         foreach (var doc in activeSnapshot.Documents)
+         {
+            var plan = doc.ConvertTo<MemberPlan>();
+            
+            // Check if plan has ValidUntil and it's in the past
+            if (plan.ValidUntil.HasValue && plan.ValidUntil.Value.ToDateTime() < now.ToDateTime())
+            {
+               var updates = new Dictionary<string, object>
+               {
+                  ["Status"] = "expired",
+                  ["UpdatedAt"] = now
+               };
+               
+               batch.Set(doc.Reference, updates, SetOptions.MergeAll);
+               hasExpiredPlans = true;
+            }
+         }
+
+         if (hasExpiredPlans)
+         {
+            await batch.CommitAsync();
+         }
+      }
+      catch (Exception ex)
+      {
+         // Log the error but don't fail the main operation
+         Console.WriteLine($"Warning: Failed to update expired plans for member {memberId}: {ex.Message}");
       }
    }
 }
