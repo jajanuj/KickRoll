@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.MemberEnrollmentsPage"
+             Title="會員報名紀錄">
+
+    <VerticalStackLayout Padding="10" Spacing="10">
+        
+        <!-- Member Info -->
+        <Frame BackgroundColor="LightBlue" Padding="10" CornerRadius="8">
+            <VerticalStackLayout>
+                <Label x:Name="MemberNameLabel" FontSize="18" FontAttributes="Bold" />
+                <Label x:Name="MemberIdLabel" FontSize="14" TextColor="Gray" />
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- Date Filter -->
+        <Frame BackgroundColor="LightGray" Padding="10" CornerRadius="8">
+            <VerticalStackLayout Spacing="5">
+                <Label Text="日期篩選" FontAttributes="Bold" />
+                <HorizontalStackLayout Spacing="10">
+                    <DatePicker x:Name="FromDatePicker" />
+                    <Label Text="至" VerticalOptions="Center" />
+                    <DatePicker x:Name="ToDatePicker" />
+                </HorizontalStackLayout>
+                <Button Text="篩選" Clicked="OnFilterClicked" />
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- Enrollments List -->
+        <CollectionView x:Name="EnrollmentsCollection"
+                        SelectionMode="Single">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BorderColor="Gray" CornerRadius="8" Padding="10" Margin="5">
+                        <VerticalStackLayout Spacing="5">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="{Binding Status}" 
+                                       FontAttributes="Bold" 
+                                       TextColor="{Binding StatusColor}" />
+                                <Label Text="{Binding CreatedAt, StringFormat='{0:yyyy/MM/dd HH:mm}'}" 
+                                       TextColor="Gray" />
+                            </HorizontalStackLayout>
+                            
+                            <Label Text="{Binding Session.TeamId}" 
+                                   FontAttributes="Bold" 
+                                   FontSize="16" />
+                            
+                            <Label Text="{Binding Session.StartTime, StringFormat='開始: {0:yyyy/MM/dd HH:mm}'}" />
+                            <Label Text="{Binding Session.EndTime, StringFormat='結束: {0:yyyy/MM/dd HH:mm}'}" />
+                            
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="{Binding Session.EnrolledCount}" />
+                                <Label Text="/" />
+                                <Label Text="{Binding Session.Capacity}" />
+                                <Label Text="人" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- No Data Message -->
+        <Label x:Name="NoDataLabel"
+               Text="尚無報名紀錄"
+               HorizontalOptions="Center"
+               TextColor="Gray"
+               IsVisible="False" />
+
+        <Label x:Name="ResultLabel" TextColor="Red" />
+    </VerticalStackLayout>
+</ContentPage>

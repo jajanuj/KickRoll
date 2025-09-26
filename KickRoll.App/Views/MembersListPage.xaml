@@ -6,7 +6,7 @@
 
     <Grid>
         <VerticalStackLayout Padding="20" Spacing="10">
-            <CollectionView x:Name="MembersCollection" SelectionMode="Single" SelectionChanged="OnMemberSelected">
+            <CollectionView x:Name="MembersCollection">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Frame BorderColor="Gray" CornerRadius="8" Padding="10" Margin="0,5">
@@ -22,6 +22,30 @@
                                 <!-- ✅ 顯示所屬隊伍 (逗號分隔) -->
                                 <Label Text="{Binding TeamNames, TargetNullValue='(未分配隊伍)', FallbackValue='(未分配隊伍)'}"
                                        FontSize="14" TextColor="DarkSlateBlue"/>
+
+                                <!-- Action buttons -->
+                                <HorizontalStackLayout Spacing="10" Margin="0,10,0,0">
+                                    <Button Text="編輯" 
+                                            BackgroundColor="Blue" 
+                                            TextColor="White" 
+                                            FontSize="12"
+                                            Clicked="OnEditMemberClicked"
+                                            CommandParameter="{Binding .}" />
+                                    
+                                    <Button Text="查看報名" 
+                                            BackgroundColor="Green" 
+                                            TextColor="White" 
+                                            FontSize="12"
+                                            Clicked="OnViewEnrollmentsClicked"
+                                            CommandParameter="{Binding .}" />
+                                            
+                                    <Button Text="管理方案" 
+                                            BackgroundColor="Orange" 
+                                            TextColor="White" 
+                                            FontSize="12"
+                                            Clicked="OnManagePlansClicked"
+                                            CommandParameter="{Binding .}" />
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Frame>
                     </DataTemplate>

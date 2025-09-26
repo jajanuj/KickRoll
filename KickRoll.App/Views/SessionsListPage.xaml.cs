@@ -18,7 +18,11 @@ public partial class SessionsListPage : ContentPage
       public DateTime EndAt { get; set; }
       public string Location { get; set; }
       public int Capacity { get; set; }
+      public int EnrolledCount { get; set; }
       public string Status { get; set; }
+      
+      public string CapacityDisplay => $"報名人數：{EnrolledCount}/{Capacity}";
+      public bool HasCapacity => EnrolledCount < Capacity;
    }
 
    public SessionsListPage()

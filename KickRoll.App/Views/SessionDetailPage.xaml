@@ -18,7 +18,28 @@
             <Label Text="{Binding EndAt}" />
 
             <Label Text="👥 人數上限：" FontAttributes="Bold"/>
-            <Label Text="{Binding Capacity}" />
+            <Label Text="{Binding CapacityDisplay}" />
+
+            <!-- Enrollment Section -->
+            <Label Text="--- 報名功能 ---" FontSize="20" FontAttributes="Bold" />
+            
+            <Entry x:Name="MemberIdEntry" Placeholder="輸入會員 ID" />
+            
+            <HorizontalStackLayout Spacing="10">
+                <Button x:Name="EnrollButton" 
+                        Text="報名" 
+                        BackgroundColor="Green" 
+                        TextColor="White"
+                        Clicked="OnEnrollClicked" />
+                
+                <Button x:Name="CancelButton" 
+                        Text="取消報名" 
+                        BackgroundColor="Orange" 
+                        TextColor="White"
+                        Clicked="OnCancelEnrollmentClicked" />
+            </HorizontalStackLayout>
+
+            <Label x:Name="EnrollmentResultLabel" TextColor="Blue" />
 
             <Label Text="📌 狀態：" FontAttributes="Bold"/>
             <Label Text="{Binding Status}" TextColor="Green"/>
