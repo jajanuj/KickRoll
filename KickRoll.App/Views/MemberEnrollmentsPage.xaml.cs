@@ -290,4 +290,35 @@ public partial class MemberEnrollmentsPage : ContentPage
             System.Diagnostics.Debug.WriteLine($"Connection test exception: {ex}");
         }
     }
+
+    private async void OnDebugDataClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            ResultLabel.TextColor = Colors.Orange;
+            ResultLabel.Text = "🔍 正在查詢資料結構...";
+
+            var response = await _httpClient.GetAsync("api/members/debug/sessions-with-enrollments");
+            var content = await response.Content.ReadAsStringAsync();
+
+            System.Diagnostics.Debug.WriteLine($"Debug endpoint response: {content}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                ResultLabel.TextColor = Colors.Green;
+                ResultLabel.Text = "✅ 資料結構查詢完成，請檢查除錯日誌";
+            }
+            else
+            {
+                ResultLabel.TextColor = Colors.Red;
+                ResultLabel.Text = $"❌ 資料結構查詢失敗: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ResultLabel.TextColor = Colors.Red;
+            ResultLabel.Text = $"❌ 除錯查詢錯誤: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"Debug query exception: {ex}");
+        }
+    }
 }

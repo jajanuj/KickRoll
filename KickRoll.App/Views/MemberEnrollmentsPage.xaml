@@ -29,6 +29,7 @@
                 </HorizontalStackLayout>
                 <Button Text="篩選" Clicked="OnFilterClicked" BackgroundColor="White" TextColor="DarkBlue" />
                 <Button Text="測試連線" Clicked="OnTestConnectionClicked" BackgroundColor="Orange" TextColor="White" FontSize="12" />
+                <Button Text="除錯資料" Clicked="OnDebugDataClicked" BackgroundColor="Red" TextColor="White" FontSize="12" />
             </VerticalStackLayout>
         </Frame>
 
