@@ -508,6 +508,43 @@ public class MembersController : ControllerBase
       }
    }
 
+   [HttpDelete("{memberId}/plans/{planId}")]
+   public async Task<IActionResult> DeleteMemberPlan(string memberId, string planId)
+   {
+      try
+      {
+         // Check if member exists
+         var memberRef = _db.Collection("members").Document(memberId);
+         var memberSnapshot = await memberRef.GetSnapshotAsync();
+         
+         if (!memberSnapshot.Exists)
+         {
+            return NotFound(new { error = "Member not found" });
+         }
+
+         // Check if plan exists
+         var planRef = memberRef.Collection("plans").Document(planId);
+         var planSnapshot = await planRef.GetSnapshotAsync();
+         
+         if (!planSnapshot.Exists)
+         {
+            return NotFound(new { error = "Plan not found" });
+         }
+
+         // Delete the plan
+         await planRef.DeleteAsync();
+
+         return Ok(new { 
+            success = true, 
+            message = "Plan deleted successfully" 
+         });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"Failed to delete plan: {ex.Message}" });
+      }
+   }
+
    // Helper method to check and update expired plans
    private async Task CheckAndUpdateExpiredPlans(string memberId)
    {

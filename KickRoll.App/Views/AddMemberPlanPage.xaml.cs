@@ -46,6 +46,12 @@ public partial class AddMemberPlanPage : ContentPage
         // 顯示/隱藏總堂數欄位
         TotalCreditsSection.IsVisible = isCreditPack;
         
+        // 自動設定方案名稱
+        if (!string.IsNullOrEmpty(selectedType))
+        {
+            NameDisplay.Text = selectedType; // 直接顯示選擇的類型作為名稱
+        }
+        
         // 更新提示文字
         if (isCreditPack)
         {
@@ -74,18 +80,17 @@ public partial class AddMemberPlanPage : ContentPage
     private async void OnSavePlanClicked(object sender, EventArgs e)
     {
         // 重設驗證標籤
-        NameValidationLabel.IsVisible = false;
         RemainingCreditsValidationLabel.IsVisible = false;
         ValidUntilValidationLabel.IsVisible = false;
         ResultLabel.Text = "";
 
         bool isValid = true;
 
-        // 驗證方案名稱
-        if (string.IsNullOrWhiteSpace(NameEntry.Text))
+        // 驗證方案類型 (名稱自動生成，不需驗證)
+        var selectedType = TypePicker.SelectedItem?.ToString();
+        if (string.IsNullOrEmpty(selectedType))
         {
-            NameValidationLabel.Text = "方案名稱不可空白";
-            NameValidationLabel.IsVisible = true;
+            ResultLabel.Text = "請選擇方案類型";
             isValid = false;
         }
 
@@ -97,15 +102,7 @@ public partial class AddMemberPlanPage : ContentPage
             isValid = false;
         }
 
-        // 驗證方案類型
-        var selectedType = TypePicker.SelectedItem?.ToString();
-        if (string.IsNullOrEmpty(selectedType))
-        {
-            ResultLabel.Text = "請選擇方案類型";
-            isValid = false;
-        }
-
-        // 期限票必須設定到期日期
+        // 包月必須設定到期日期
         if (selectedType == "包月" && !ValidUntilCheckBox.IsChecked)
         {
             ValidUntilValidationLabel.Text = "包月必須設定到期日期";
@@ -128,7 +125,7 @@ public partial class AddMemberPlanPage : ContentPage
             var newPlan = new
             {
                 type = GetApiTypeFromDisplayName(selectedType),
-                name = NameEntry.Text.Trim(),
+                name = selectedType, // 使用類型作為名稱
                 totalCredits = TotalCreditsSection.IsVisible && int.TryParse(TotalCreditsEntry.Text, out int total) ? total : (int?)null,
                 remainingCredits = remainingCredits,
                 validFrom = ValidFromCheckBox.IsChecked ? DateTime.SpecifyKind(ValidFromPicker.Date, DateTimeKind.Utc) : (DateTime?)null,

@@ -28,9 +28,8 @@
 
             <!-- 方案名稱 -->
             <VerticalStackLayout Spacing="5">
-                <Label Text="方案名稱 *" FontSize="14" FontAttributes="Bold"/>
-                <Entry x:Name="NameEntry" Placeholder="如：10堂計次課程、包月課程" />
-                <Label x:Name="NameValidationLabel" TextColor="Red" IsVisible="False"/>
+                <Label Text="方案名稱" FontSize="14" FontAttributes="Bold"/>
+                <Label x:Name="NameDisplay" Text="請先選擇方案類型" FontSize="16" BackgroundColor="LightGray" Padding="10" />
             </VerticalStackLayout>
 
             <!-- 總堂數 (僅堂數包顯示) -->

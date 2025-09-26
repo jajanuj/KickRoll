@@ -146,6 +146,49 @@ public partial class MemberPlansPage : ContentPage
         }
     }
 
+    private async void OnDeletePlanClicked(object sender, EventArgs e)
+    {
+        if (sender is Button button && button.CommandParameter is string planId)
+        {
+            var plan = _allPlans.FirstOrDefault(p => p.Id == planId);
+            if (plan != null)
+            {
+                // 確認刪除
+                bool confirm = await DisplayAlert("確認刪除", 
+                    $"確定要刪除方案「{plan.Name}」嗎？\n此操作無法復原。", 
+                    "確定", "取消");
+                    
+                if (confirm)
+                {
+                    await DeletePlan(plan);
+                }
+            }
+        }
+    }
+
+    private async Task DeletePlan(MemberPlanDisplay plan)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"api/members/{_memberId}/plans/{plan.Id}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                await DisplayAlert("成功", "方案刪除成功！", "確定");
+                await LoadPlansAsync(); // 重新載入數據
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                await DisplayAlert("錯誤", $"刪除失敗: {error}", "確定");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("錯誤", ex.Message, "確定");
+        }
+    }
+
     private async Task ShowAdjustCreditsDialog(MemberPlanDisplay plan)
     {
         try

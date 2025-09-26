@@ -72,6 +72,12 @@
                                             BackgroundColor="Green" 
                                             TextColor="White"
                                             FontSize="12"/>
+                                    <Button Text="刪除" 
+                                            Clicked="OnDeletePlanClicked" 
+                                            CommandParameter="{Binding Id}"
+                                            BackgroundColor="Red" 
+                                            TextColor="White"
+                                            FontSize="12"/>
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Frame>
