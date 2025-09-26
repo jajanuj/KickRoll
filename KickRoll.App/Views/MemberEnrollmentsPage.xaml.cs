@@ -126,6 +126,20 @@ public partial class MemberEnrollmentsPage : ContentPage
                 return;
             }
 
+            // Handle empty response
+            if (string.IsNullOrWhiteSpace(responseContent) || responseContent.Trim() == "[]")
+            {
+                EnrollmentsCollection.ItemsSource = null;
+                EnrollmentsCollection.IsVisible = false;
+                NoDataLabel.IsVisible = true;
+                
+                ResultLabel.TextColor = Colors.Gray;
+                ResultLabel.Text = "無報名紀錄";
+                
+                System.Diagnostics.Debug.WriteLine("Empty response - no enrollments found");
+                return;
+            }
+
             try
             {
                 var enrollments = await response.Content.ReadFromJsonAsync<List<MemberEnrollmentsResponse>>();
@@ -230,5 +244,50 @@ public partial class MemberEnrollmentsPage : ContentPage
         }
 
         await LoadEnrollmentsAsync(fromDate, toDate);
+    }
+
+    private async void OnTestConnectionClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            ResultLabel.TextColor = Colors.Blue;
+            ResultLabel.Text = "🔍 測試 API 連線...";
+
+            // Test basic API connectivity
+            var response = await _httpClient.GetAsync($"api/members/{_memberId}");
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                ResultLabel.TextColor = Colors.Green;
+                ResultLabel.Text = $"✅ API 連線正常 ({response.StatusCode})";
+                
+                // Now try the enrollments endpoint
+                var enrollmentsUrl = $"api/members/{_memberId}/enrollments";
+                System.Diagnostics.Debug.WriteLine($"Testing enrollments URL: {enrollmentsUrl}");
+                
+                var enrollmentsResponse = await _httpClient.GetAsync(enrollmentsUrl);
+                var enrollmentsContent = await enrollmentsResponse.Content.ReadAsStringAsync();
+                
+                System.Diagnostics.Debug.WriteLine($"Enrollments Response: {enrollmentsResponse.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"Enrollments Content: {enrollmentsContent}");
+                
+                ResultLabel.Text = $"✅ API 測試完成 - 會員端點: {response.StatusCode}, 報名端點: {enrollmentsResponse.StatusCode}";
+            }
+            else
+            {
+                ResultLabel.TextColor = Colors.Red;
+                ResultLabel.Text = $"❌ API 連線失敗：{response.StatusCode} - {responseContent}";
+                
+                System.Diagnostics.Debug.WriteLine($"API Test failed: {response.StatusCode} - {responseContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ResultLabel.TextColor = Colors.Red;
+            ResultLabel.Text = $"❌ 連線測試異常：{ex.Message}";
+            
+            System.Diagnostics.Debug.WriteLine($"Connection test exception: {ex}");
+        }
     }
 }
