@@ -545,6 +545,87 @@ public class MembersController : ControllerBase
       }
    }
 
+   // Enrollment endpoints
+   
+   [HttpGet("{memberId}/enrollments")]
+   public async Task<IActionResult> GetMemberEnrollments(string memberId, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+   {
+      try
+      {
+         // Validate member exists
+         var memberRef = _db.Collection("members").Document(memberId);
+         var memberSnapshot = await memberRef.GetSnapshotAsync();
+         
+         if (!memberSnapshot.Exists)
+         {
+            return NotFound(new { error = "Member not found" });
+         }
+
+         // Query enrollments across all sessions
+         var enrollmentsQuery = _db.CollectionGroup("enrollments")
+            .WhereEqualTo("MemberId", memberId);
+
+         // Apply date filters if provided
+         if (from.HasValue)
+         {
+            var fromTimestamp = Timestamp.FromDateTime(from.Value.ToUniversalTime());
+            enrollmentsQuery = enrollmentsQuery.WhereGreaterThanOrEqualTo("CreatedAt", fromTimestamp);
+         }
+
+         if (to.HasValue)
+         {
+            var toTimestamp = Timestamp.FromDateTime(to.Value.ToUniversalTime());
+            enrollmentsQuery = enrollmentsQuery.WhereLessThanOrEqualTo("CreatedAt", toTimestamp);
+         }
+
+         var enrollmentsSnapshot = await enrollmentsQuery.GetSnapshotAsync();
+         var enrollments = new List<MemberEnrollmentsResponse>();
+
+         foreach (var doc in enrollmentsSnapshot.Documents)
+         {
+            var sessionId = doc.GetValue<string>("SessionId");
+            
+            // Get session details
+            var sessionRef = _db.Collection("sessions").Document(sessionId);
+            var sessionSnapshot = await sessionRef.GetSnapshotAsync();
+
+            if (sessionSnapshot.Exists)
+            {
+               var sessionData = new SessionEnrollmentResponse
+               {
+                  Id = sessionSnapshot.Id,
+                  CourseId = sessionSnapshot.GetValue<string>("CourseId"),
+                  TeamId = sessionSnapshot.GetValue<string>("TeamId"),
+                  StartTime = sessionSnapshot.GetValue<Timestamp>("StartTime").ToDateTime(),
+                  EndTime = sessionSnapshot.GetValue<Timestamp>("EndTime").ToDateTime(),
+                  Capacity = sessionSnapshot.GetValue<int>("Capacity"),
+                  EnrolledCount = sessionSnapshot.GetValue<int>("EnrolledCount"),
+                  CreatedAt = sessionSnapshot.GetValue<Timestamp>("CreatedAt").ToDateTime(),
+                  UpdatedAt = sessionSnapshot.GetValue<Timestamp>("UpdatedAt").ToDateTime()
+               };
+
+               enrollments.Add(new MemberEnrollmentsResponse
+               {
+                  EnrollmentId = doc.Id,
+                  SessionId = sessionId,
+                  Status = doc.GetValue<string>("Status"),
+                  CreatedAt = doc.GetValue<Timestamp>("CreatedAt").ToDateTime(),
+                  Session = sessionData
+               });
+            }
+         }
+
+         // Sort by creation date descending
+         enrollments = enrollments.OrderByDescending(e => e.CreatedAt).ToList();
+
+         return Ok(enrollments);
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"Failed to retrieve enrollments: {ex.Message}" });
+      }
+   }
+
    // Helper method to check and update expired plans
    private async Task CheckAndUpdateExpiredPlans(string memberId)
    {
