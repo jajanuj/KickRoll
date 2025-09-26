@@ -562,6 +562,9 @@ public class MembersController : ControllerBase
          }
 
          // Query enrollments across all sessions
+         // Debug: Check which collection structure we're querying
+         System.Diagnostics.Debug.WriteLine($"Querying enrollments for member: {memberId}");
+         
          var enrollmentsQuery = _db.CollectionGroup("enrollments")
             .WhereEqualTo("MemberId", memberId);
 
@@ -570,54 +573,108 @@ public class MembersController : ControllerBase
          {
             var fromTimestamp = Timestamp.FromDateTime(from.Value.ToUniversalTime());
             enrollmentsQuery = enrollmentsQuery.WhereGreaterThanOrEqualTo("CreatedAt", fromTimestamp);
+            System.Diagnostics.Debug.WriteLine($"Applied from date filter: {from.Value}");
          }
 
          if (to.HasValue)
          {
             var toTimestamp = Timestamp.FromDateTime(to.Value.ToUniversalTime());
             enrollmentsQuery = enrollmentsQuery.WhereLessThanOrEqualTo("CreatedAt", toTimestamp);
+            System.Diagnostics.Debug.WriteLine($"Applied to date filter: {to.Value}");
          }
 
          var enrollmentsSnapshot = await enrollmentsQuery.GetSnapshotAsync();
+         System.Diagnostics.Debug.WriteLine($"Found {enrollmentsSnapshot.Documents.Count} enrollment documents via CollectionGroup");
+         
+         // If no results from collection group, try centralized collection
+         if (enrollmentsSnapshot.Documents.Count == 0)
+         {
+            System.Diagnostics.Debug.WriteLine("Trying centralized enrollments collection...");
+            var centralizedQuery = _db.Collection("enrollments").WhereEqualTo("MemberId", memberId);
+            
+            if (from.HasValue)
+            {
+               var fromTimestamp = Timestamp.FromDateTime(from.Value.ToUniversalTime());
+               centralizedQuery = centralizedQuery.WhereGreaterThanOrEqualTo("CreatedAt", fromTimestamp);
+            }
+
+            if (to.HasValue)
+            {
+               var toTimestamp = Timestamp.FromDateTime(to.Value.ToUniversalTime());
+               centralizedQuery = centralizedQuery.WhereLessThanOrEqualTo("CreatedAt", toTimestamp);
+            }
+            
+            enrollmentsSnapshot = await centralizedQuery.GetSnapshotAsync();
+            System.Diagnostics.Debug.WriteLine($"Found {enrollmentsSnapshot.Documents.Count} enrollment documents via centralized collection");
+         }
+         
          var enrollments = new List<MemberEnrollmentsResponse>();
 
          foreach (var doc in enrollmentsSnapshot.Documents)
          {
-            var sessionId = doc.GetValue<string>("SessionId");
+            System.Diagnostics.Debug.WriteLine($"Processing enrollment doc: {doc.Id}");
             
-            // Get session details
-            var sessionRef = _db.Collection("class_sessions").Document(sessionId);
-            var sessionSnapshot = await sessionRef.GetSnapshotAsync();
-
-            if (sessionSnapshot.Exists)
+            try
             {
-               var sessionData = new SessionEnrollmentResponse
+               var sessionId = doc.ContainsField("SessionId") ? doc.GetValue<string>("SessionId") : "";
+               var status = doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "";
+               var createdAt = doc.ContainsField("CreatedAt") ? doc.GetValue<Timestamp>("CreatedAt") : Timestamp.GetCurrentTimestamp();
+               
+               System.Diagnostics.Debug.WriteLine($"Enrollment - SessionId: {sessionId}, Status: {status}");
+               
+               if (string.IsNullOrEmpty(sessionId))
                {
-                  Id = sessionSnapshot.Id,
-                  CourseId = sessionSnapshot.ContainsField("CourseId") ? sessionSnapshot.GetValue<string>("CourseId") : "",
-                  TeamId = sessionSnapshot.ContainsField("TeamId") ? sessionSnapshot.GetValue<string>("TeamId") : "",
-                  StartTime = sessionSnapshot.ContainsField("StartAt") ? sessionSnapshot.GetValue<Timestamp>("StartAt").ToDateTime() : DateTime.MinValue,
-                  EndTime = sessionSnapshot.ContainsField("EndAt") ? sessionSnapshot.GetValue<Timestamp>("EndAt").ToDateTime() : DateTime.MinValue,
-                  Capacity = sessionSnapshot.ContainsField("Capacity") ? sessionSnapshot.GetValue<int>("Capacity") : 0,
-                  EnrolledCount = sessionSnapshot.ContainsField("EnrolledCount") ? sessionSnapshot.GetValue<int>("EnrolledCount") : 0,
-                  CreatedAt = sessionSnapshot.ContainsField("CreatedAt") ? sessionSnapshot.GetValue<Timestamp>("CreatedAt").ToDateTime() : DateTime.MinValue,
-                  UpdatedAt = sessionSnapshot.ContainsField("UpdatedAt") ? sessionSnapshot.GetValue<Timestamp>("UpdatedAt").ToDateTime() : DateTime.MinValue
-               };
+                  System.Diagnostics.Debug.WriteLine("Warning: SessionId is empty or missing");
+                  continue;
+               }
+               
+               // Get session details
+               var sessionRef = _db.Collection("class_sessions").Document(sessionId);
+               var sessionSnapshot = await sessionRef.GetSnapshotAsync();
 
-               enrollments.Add(new MemberEnrollmentsResponse
+               if (sessionSnapshot.Exists)
                {
-                  EnrollmentId = doc.Id,
-                  SessionId = sessionId,
-                  Status = doc.GetValue<string>("Status"),
-                  CreatedAt = doc.GetValue<Timestamp>("CreatedAt").ToDateTime(),
-                  Session = sessionData
-               });
+                  System.Diagnostics.Debug.WriteLine($"Session found: {sessionId}");
+                  
+                  var sessionData = new SessionEnrollmentResponse
+                  {
+                     Id = sessionSnapshot.Id,
+                     CourseId = sessionSnapshot.ContainsField("CourseId") ? sessionSnapshot.GetValue<string>("CourseId") : "",
+                     TeamId = sessionSnapshot.ContainsField("TeamId") ? sessionSnapshot.GetValue<string>("TeamId") : "",
+                     StartTime = sessionSnapshot.ContainsField("StartAt") ? sessionSnapshot.GetValue<Timestamp>("StartAt").ToDateTime() : DateTime.MinValue,
+                     EndTime = sessionSnapshot.ContainsField("EndAt") ? sessionSnapshot.GetValue<Timestamp>("EndAt").ToDateTime() : DateTime.MinValue,
+                     Capacity = sessionSnapshot.ContainsField("Capacity") ? sessionSnapshot.GetValue<int>("Capacity") : 0,
+                     EnrolledCount = sessionSnapshot.ContainsField("EnrolledCount") ? sessionSnapshot.GetValue<int>("EnrolledCount") : 0,
+                     CreatedAt = sessionSnapshot.ContainsField("CreatedAt") ? sessionSnapshot.GetValue<Timestamp>("CreatedAt").ToDateTime() : DateTime.MinValue,
+                     UpdatedAt = sessionSnapshot.ContainsField("UpdatedAt") ? sessionSnapshot.GetValue<Timestamp>("UpdatedAt").ToDateTime() : DateTime.MinValue
+                  };
+
+                  enrollments.Add(new MemberEnrollmentsResponse
+                  {
+                     EnrollmentId = doc.Id,
+                     SessionId = sessionId,
+                     Status = status,
+                     CreatedAt = createdAt.ToDateTime(),
+                     Session = sessionData
+                  });
+                  
+                  System.Diagnostics.Debug.WriteLine($"Added enrollment to results list");
+               }
+               else
+               {
+                  System.Diagnostics.Debug.WriteLine($"Warning: Session {sessionId} not found");
+               }
+            }
+            catch (Exception ex)
+            {
+               System.Diagnostics.Debug.WriteLine($"Error processing enrollment doc {doc.Id}: {ex.Message}");
             }
          }
 
          // Sort by creation date descending
          enrollments = enrollments.OrderByDescending(e => e.CreatedAt).ToList();
 
+         System.Diagnostics.Debug.WriteLine($"Returning {enrollments.Count} enrollments total");
          return Ok(enrollments);
       }
       catch (Exception ex)
