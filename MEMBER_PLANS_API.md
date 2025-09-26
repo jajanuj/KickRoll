@@ -12,7 +12,7 @@
 ```json
 {
   "type": "credit_pack",
-  "name": "10堂課程包",
+  "name": "10堂計次課程",
   "totalCredits": 10,
   "remainingCredits": 10,
   "validFrom": "2024-01-01T00:00:00Z",
@@ -64,7 +64,7 @@
   {
     "id": "plan-id-2",
     "type": "time_pass",
-    "name": "月票",
+    "name": "包月課程",
     "totalCredits": null,
     "remainingCredits": 0,
     "validFrom": "2024-01-01T00:00:00Z",
@@ -123,7 +123,7 @@
 **集合路徑**: `members/{MemberId}/plans/{PlanId}`
 
 文件欄位 (Firestore 中使用 PascalCase):
-- `Type`: "credit_pack"(堂數包) | "time_pass"(期限票)
+- `Type`: "credit_pack" | "time_pass"
 - `Name`: 字串
 - `TotalCredits`: 數字 (time_pass 可為 null)
 - `RemainingCredits`: 數字  

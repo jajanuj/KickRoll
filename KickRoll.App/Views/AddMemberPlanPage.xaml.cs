@@ -41,7 +41,7 @@ public partial class AddMemberPlanPage : ContentPage
     private void OnTypeChanged(object sender, EventArgs e)
     {
         var selectedType = TypePicker.SelectedItem?.ToString();
-        bool isCreditPack = selectedType == "credit_pack";
+        bool isCreditPack = selectedType == "計次";
         
         // 顯示/隱藏總堂數欄位
         TotalCreditsSection.IsVisible = isCreditPack;
@@ -49,14 +49,14 @@ public partial class AddMemberPlanPage : ContentPage
         // 更新提示文字
         if (isCreditPack)
         {
-            RemainingCreditsHint.Text = "堂數包：設定初始剩餘堂數（通常等於總堂數）";
-            ValidUntilLabel.Text = "設定到期日期 (堂數包可選)";
+            RemainingCreditsHint.Text = "計次：設定初始剩餘堂數（通常等於總堂數）";
+            ValidUntilLabel.Text = "設定到期日期 (計次可選)";
             ValidUntilCheckBox.IsChecked = false;
         }
         else
         {
-            RemainingCreditsHint.Text = "期限票：通常設為 0（不按次計費）";
-            ValidUntilLabel.Text = "設定到期日期 (期限票必須設定) *";
+            RemainingCreditsHint.Text = "包月：通常設為 0（不按次計費）";
+            ValidUntilLabel.Text = "設定到期日期 (包月必須設定) *";
             ValidUntilCheckBox.IsChecked = true;
         }
     }
@@ -106,9 +106,9 @@ public partial class AddMemberPlanPage : ContentPage
         }
 
         // 期限票必須設定到期日期
-        if (selectedType == "time_pass" && !ValidUntilCheckBox.IsChecked)
+        if (selectedType == "包月" && !ValidUntilCheckBox.IsChecked)
         {
-            ValidUntilValidationLabel.Text = "期限票必須設定到期日期";
+            ValidUntilValidationLabel.Text = "包月必須設定到期日期";
             ValidUntilValidationLabel.IsVisible = true;
             isValid = false;
         }
@@ -127,7 +127,7 @@ public partial class AddMemberPlanPage : ContentPage
             // 準備請求資料
             var newPlan = new
             {
-                type = selectedType,
+                type = GetApiTypeFromDisplayName(selectedType),
                 name = NameEntry.Text.Trim(),
                 totalCredits = TotalCreditsSection.IsVisible && int.TryParse(TotalCreditsEntry.Text, out int total) ? total : (int?)null,
                 remainingCredits = remainingCredits,
@@ -165,6 +165,16 @@ public partial class AddMemberPlanPage : ContentPage
     private async void OnCancelClicked(object sender, EventArgs e)
     {
         await Navigation.PopAsync();
+    }
+
+    private string GetApiTypeFromDisplayName(string displayName)
+    {
+        return displayName switch
+        {
+            "計次" => "credit_pack",
+            "包月" => "time_pass",
+            _ => "credit_pack" // default fallback
+        };
     }
 
     #endregion

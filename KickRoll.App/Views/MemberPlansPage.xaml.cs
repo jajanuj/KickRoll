@@ -237,7 +237,7 @@ public class MemberPlanDisplay
     public DateTime UpdatedAt { get; set; }
 
     // Display properties for UI binding
-    public string TypeDisplay => Type == "credit_pack" ? "堂數包" : "期限票";
+    public string TypeDisplay => Type == "credit_pack" ? "計次" : "包月";
     public Color TypeColor => Type == "credit_pack" ? Colors.Blue : Colors.Purple;
     
     public string StatusDisplay => Status switch
