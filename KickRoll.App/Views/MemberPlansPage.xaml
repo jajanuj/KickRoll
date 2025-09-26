@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.MemberPlansPage"
+             Title="會員方案">
+
+    <Grid>
+        <VerticalStackLayout Padding="20" Spacing="10">
+            <!-- 會員資訊 -->
+            <Frame BackgroundColor="LightBlue" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="5">
+                    <Label x:Name="MemberNameLabel" Text="會員名稱" FontSize="18" FontAttributes="Bold"/>
+                    <Label x:Name="MemberIdLabel" Text="會員 ID" FontSize="14" TextColor="Gray"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- 狀態篩選 -->
+            <HorizontalStackLayout Spacing="10">
+                <Label Text="狀態篩選:" VerticalOptions="Center"/>
+                <Picker x:Name="StatusPicker" Title="選擇狀態" SelectedIndexChanged="OnStatusFilterChanged">
+                    <Picker.Items>
+                        <x:String>全部</x:String>
+                        <x:String>active</x:String>
+                        <x:String>expired</x:String>
+                        <x:String>suspended</x:String>
+                    </Picker.Items>
+                </Picker>
+            </HorizontalStackLayout>
+
+            <!-- 方案列表 -->
+            <Label Text="方案列表:" FontSize="16" FontAttributes="Bold"/>
+            <CollectionView x:Name="PlansCollection" SelectionMode="Single" SelectionChanged="OnPlanSelected">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BorderColor="Gray" CornerRadius="8" Padding="15" Margin="0,5">
+                            <VerticalStackLayout Spacing="8">
+                                <!-- 方案名稱與類型 -->
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Start"/>
+                                    <Frame BackgroundColor="{Binding TypeColor}" Padding="5,2" CornerRadius="3" HorizontalOptions="End">
+                                        <Label Text="{Binding TypeDisplay}" FontSize="12" TextColor="White"/>
+                                    </Frame>
+                                </HorizontalStackLayout>
+
+                                <!-- 堂數資訊 -->
+                                <HorizontalStackLayout Spacing="15" IsVisible="{Binding ShowCredits}">
+                                    <Label Text="{Binding CreditsInfo}" FontSize="14" TextColor="DarkBlue"/>
+                                </HorizontalStackLayout>
+
+                                <!-- 有效期限 -->
+                                <HorizontalStackLayout Spacing="10" IsVisible="{Binding ShowValidUntil}">
+                                    <Label Text="有效期限:" FontSize="12" TextColor="Gray"/>
+                                    <Label Text="{Binding ValidUntilDisplay}" FontSize="12" TextColor="Gray"/>
+                                </HorizontalStackLayout>
+
+                                <!-- 狀態 -->
+                                <Frame BackgroundColor="{Binding StatusColor}" Padding="5,2" CornerRadius="3" HorizontalOptions="Start">
+                                    <Label Text="{Binding StatusDisplay}" FontSize="12" TextColor="White"/>
+                                </Frame>
+
+                                <!-- 操作按鈕 -->
+                                <HorizontalStackLayout Spacing="10">
+                                    <Button Text="調整堂數" 
+                                            Clicked="OnAdjustCreditsClicked" 
+                                            CommandParameter="{Binding Id}"
+                                            BackgroundColor="Orange" 
+                                            TextColor="White"
+                                            FontSize="12"/>
+                                    <Button Text="編輯方案" 
+                                            Clicked="OnEditPlanClicked" 
+                                            CommandParameter="{Binding Id}"
+                                            BackgroundColor="Green" 
+                                            TextColor="White"
+                                            FontSize="12"/>
+                                    <Button Text="刪除" 
+                                            Clicked="OnDeletePlanClicked" 
+                                            CommandParameter="{Binding Id}"
+                                            BackgroundColor="Red" 
+                                            TextColor="White"
+                                            FontSize="12"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label x:Name="ResultLabel" TextColor="Red"/>
+        </VerticalStackLayout>
+
+        <!-- 新增方案按鈕 -->
+        <Button x:Name="AddPlanFab" 
+                Text="+" 
+                Clicked="OnAddPlanFabClicked"
+                BackgroundColor="#4CAF50" 
+                TextColor="White"
+                FontSize="24"
+                FontAttributes="Bold"
+                WidthRequest="56" 
+                HeightRequest="56" 
+                CornerRadius="28"
+                HorizontalOptions="End" 
+                VerticalOptions="End" 
+                Margin="20,20,20,20" />
+    </Grid>
+</ContentPage>

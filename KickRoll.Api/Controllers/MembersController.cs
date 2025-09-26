@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using KickRoll.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KickRoll.Api.Controllers;
@@ -242,5 +243,348 @@ public class MembersController : ControllerBase
       };
 
       return Ok(member);
+   }
+
+   // Member Plans endpoints
+   
+   [HttpPost("{memberId}/plans")]
+   public async Task<IActionResult> CreateMemberPlan(string memberId, [FromBody] CreateMemberPlanRequest request)
+   {
+      // Validate member exists
+      var memberRef = _db.Collection("members").Document(memberId);
+      var memberSnapshot = await memberRef.GetSnapshotAsync();
+      
+      if (!memberSnapshot.Exists)
+      {
+         return NotFound(new { error = "Member not found" });
+      }
+
+      // Validate request
+      if (string.IsNullOrWhiteSpace(request.Name))
+      {
+         return BadRequest(new { error = "Plan name is required" });
+      }
+
+      if (request.Type != "credit_pack" && request.Type != "time_pass")
+      {
+         return BadRequest(new { error = "Type must be 'credit_pack' or 'time_pass'" });
+      }
+
+      if (request.RemainingCredits < 0)
+      {
+         return BadRequest(new { error = "RemainingCredits cannot be negative" });
+      }
+
+      // For time_pass, ValidUntil is required
+      if (request.Type == "time_pass" && !request.ValidUntil.HasValue)
+      {
+         return BadRequest(new { error = "ValidUntil is required for time_pass plans" });
+      }
+
+      try
+      {
+         var plansCollection = _db.Collection("members").Document(memberId).Collection("plans");
+         var newDocRef = plansCollection.Document();
+         
+         var now = Timestamp.GetCurrentTimestamp();
+         var memberPlan = new MemberPlan
+         {
+            Id = newDocRef.Id,
+            Type = request.Type,
+            Name = request.Name,
+            TotalCredits = request.TotalCredits,
+            RemainingCredits = request.RemainingCredits,
+            ValidFrom = request.ValidFrom.HasValue ? Timestamp.FromDateTime(request.ValidFrom.Value.ToUniversalTime()) : null,
+            ValidUntil = request.ValidUntil.HasValue ? Timestamp.FromDateTime(request.ValidUntil.Value.ToUniversalTime()) : null,
+            Status = request.Status,
+            CreatedAt = now,
+            UpdatedAt = now
+         };
+
+         await newDocRef.SetAsync(memberPlan, SetOptions.MergeAll);
+
+         var response = new MemberPlanResponse
+         {
+            Id = memberPlan.Id,
+            Type = memberPlan.Type,
+            Name = memberPlan.Name,
+            TotalCredits = memberPlan.TotalCredits,
+            RemainingCredits = memberPlan.RemainingCredits,
+            ValidFrom = memberPlan.ValidFrom?.ToDateTime(),
+            ValidUntil = memberPlan.ValidUntil?.ToDateTime(),
+            Status = memberPlan.Status,
+            CreatedAt = memberPlan.CreatedAt.ToDateTime(),
+            UpdatedAt = memberPlan.UpdatedAt.ToDateTime()
+         };
+
+         return Ok(new { success = true, plan = response });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"Failed to create plan: {ex.Message}" });
+      }
+   }
+
+   [HttpGet("{memberId}/plans")]
+   public async Task<IActionResult> GetMemberPlans(string memberId, [FromQuery] string? status = null)
+   {
+      // Validate member exists
+      var memberRef = _db.Collection("members").Document(memberId);
+      var memberSnapshot = await memberRef.GetSnapshotAsync();
+      
+      if (!memberSnapshot.Exists)
+      {
+         return NotFound(new { error = "Member not found" });
+      }
+
+      try
+      {
+         // Auto-expire plans before retrieving them
+         await CheckAndUpdateExpiredPlans(memberId);
+
+         var plansCollection = _db.Collection("members").Document(memberId).Collection("plans");
+         Query query = plansCollection;
+
+         if (!string.IsNullOrWhiteSpace(status))
+         {
+            query = query.WhereEqualTo("Status", status);
+         }
+
+         var snapshot = await query.GetSnapshotAsync();
+         var plans = new List<MemberPlanResponse>();
+
+         foreach (var doc in snapshot.Documents)
+         {
+            var plan = doc.ConvertTo<MemberPlan>();
+            var response = new MemberPlanResponse
+            {
+               Id = plan.Id,
+               Type = plan.Type,
+               Name = plan.Name,
+               TotalCredits = plan.TotalCredits,
+               RemainingCredits = plan.RemainingCredits,
+               ValidFrom = plan.ValidFrom?.ToDateTime(),
+               ValidUntil = plan.ValidUntil?.ToDateTime(),
+               Status = plan.Status,
+               CreatedAt = plan.CreatedAt.ToDateTime(),
+               UpdatedAt = plan.UpdatedAt.ToDateTime()
+            };
+            plans.Add(response);
+         }
+
+         return Ok(plans);
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"Failed to get plans: {ex.Message}" });
+      }
+   }
+
+   [HttpPatch("{memberId}/plans/{planId}")]
+   public async Task<IActionResult> UpdateMemberPlan(string memberId, string planId, [FromBody] UpdateMemberPlanRequest request)
+   {
+      // Validate member exists
+      var memberRef = _db.Collection("members").Document(memberId);
+      var memberSnapshot = await memberRef.GetSnapshotAsync();
+      
+      if (!memberSnapshot.Exists)
+      {
+         return NotFound(new { error = "Member not found" });
+      }
+
+      try
+      {
+         var planRef = _db.Collection("members").Document(memberId).Collection("plans").Document(planId);
+         var planSnapshot = await planRef.GetSnapshotAsync();
+
+         if (!planSnapshot.Exists)
+         {
+            return NotFound(new { error = "Plan not found" });
+         }
+
+         var updates = new Dictionary<string, object>();
+
+         // Only update non-null fields
+         if (!string.IsNullOrWhiteSpace(request.Type))
+         {
+            if (request.Type != "credit_pack" && request.Type != "time_pass")
+            {
+               return BadRequest(new { error = "Type must be 'credit_pack' or 'time_pass'" });
+            }
+            updates["Type"] = request.Type;
+         }
+
+         if (!string.IsNullOrWhiteSpace(request.Name))
+            updates["Name"] = request.Name;
+
+         if (request.TotalCredits.HasValue)
+            updates["TotalCredits"] = request.TotalCredits.Value;
+
+         if (request.RemainingCredits.HasValue)
+         {
+            if (request.RemainingCredits.Value < 0)
+            {
+               return BadRequest(new { error = "RemainingCredits cannot be negative" });
+            }
+            updates["RemainingCredits"] = request.RemainingCredits.Value;
+         }
+
+         if (request.ValidFrom.HasValue)
+            updates["ValidFrom"] = Timestamp.FromDateTime(request.ValidFrom.Value.ToUniversalTime());
+
+         if (request.ValidUntil.HasValue)
+            updates["ValidUntil"] = Timestamp.FromDateTime(request.ValidUntil.Value.ToUniversalTime());
+
+         if (!string.IsNullOrWhiteSpace(request.Status))
+         {
+            var validStatuses = new[] { "active", "expired", "suspended" };
+            if (!validStatuses.Contains(request.Status))
+            {
+               return BadRequest(new { error = "Status must be 'active', 'expired', or 'suspended'" });
+            }
+            updates["Status"] = request.Status;
+         }
+
+         updates["UpdatedAt"] = Timestamp.GetCurrentTimestamp();
+
+         await planRef.SetAsync(updates, SetOptions.MergeAll);
+
+         return Ok(new { success = true, message = "Plan updated successfully" });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"Failed to update plan: {ex.Message}" });
+      }
+   }
+
+   [HttpPost("{memberId}/plans/{planId}:adjust")]
+   public async Task<IActionResult> AdjustPlanCredits(string memberId, string planId, [FromBody] AdjustCreditsRequest request)
+   {
+      // Validate member exists
+      var memberRef = _db.Collection("members").Document(memberId);
+      var memberSnapshot = await memberRef.GetSnapshotAsync();
+      
+      if (!memberSnapshot.Exists)
+      {
+         return NotFound(new { error = "Member not found" });
+      }
+
+      try
+      {
+         var planRef = _db.Collection("members").Document(memberId).Collection("plans").Document(planId);
+         var planSnapshot = await planRef.GetSnapshotAsync();
+
+         if (!planSnapshot.Exists)
+         {
+            return NotFound(new { error = "Plan not found" });
+         }
+
+         var plan = planSnapshot.ConvertTo<MemberPlan>();
+         var newRemainingCredits = plan.RemainingCredits + request.Delta;
+
+         if (newRemainingCredits < 0)
+         {
+            return BadRequest(new { error = "Adjustment would result in negative credits" });
+         }
+
+         var updates = new Dictionary<string, object>
+         {
+            ["RemainingCredits"] = newRemainingCredits,
+            ["UpdatedAt"] = Timestamp.GetCurrentTimestamp()
+         };
+
+         await planRef.SetAsync(updates, SetOptions.MergeAll);
+
+         return Ok(new { 
+            success = true, 
+            message = "Credits adjusted successfully",
+            newRemainingCredits = newRemainingCredits,
+            delta = request.Delta
+         });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"Failed to adjust credits: {ex.Message}" });
+      }
+   }
+
+   [HttpDelete("{memberId}/plans/{planId}")]
+   public async Task<IActionResult> DeleteMemberPlan(string memberId, string planId)
+   {
+      try
+      {
+         // Check if member exists
+         var memberRef = _db.Collection("members").Document(memberId);
+         var memberSnapshot = await memberRef.GetSnapshotAsync();
+         
+         if (!memberSnapshot.Exists)
+         {
+            return NotFound(new { error = "Member not found" });
+         }
+
+         // Check if plan exists
+         var planRef = memberRef.Collection("plans").Document(planId);
+         var planSnapshot = await planRef.GetSnapshotAsync();
+         
+         if (!planSnapshot.Exists)
+         {
+            return NotFound(new { error = "Plan not found" });
+         }
+
+         // Delete the plan
+         await planRef.DeleteAsync();
+
+         return Ok(new { 
+            success = true, 
+            message = "Plan deleted successfully" 
+         });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = $"Failed to delete plan: {ex.Message}" });
+      }
+   }
+
+   // Helper method to check and update expired plans
+   private async Task CheckAndUpdateExpiredPlans(string memberId)
+   {
+      try
+      {
+         var plansCollection = _db.Collection("members").Document(memberId).Collection("plans");
+         var activeQuery = plansCollection.WhereEqualTo("Status", "active");
+         var activeSnapshot = await activeQuery.GetSnapshotAsync();
+
+         var now = Timestamp.GetCurrentTimestamp();
+         var batch = _db.StartBatch();
+         var hasExpiredPlans = false;
+
+         foreach (var doc in activeSnapshot.Documents)
+         {
+            var plan = doc.ConvertTo<MemberPlan>();
+            
+            // Check if plan has ValidUntil and it's in the past
+            if (plan.ValidUntil.HasValue && plan.ValidUntil.Value.ToDateTime() < now.ToDateTime())
+            {
+               var updates = new Dictionary<string, object>
+               {
+                  ["Status"] = "expired",
+                  ["UpdatedAt"] = now
+               };
+               
+               batch.Set(doc.Reference, updates, SetOptions.MergeAll);
+               hasExpiredPlans = true;
+            }
+         }
+
+         if (hasExpiredPlans)
+         {
+            await batch.CommitAsync();
+         }
+      }
+      catch (Exception ex)
+      {
+         // Log the error but don't fail the main operation
+         Console.WriteLine($"Warning: Failed to update expired plans for member {memberId}: {ex.Message}");
+      }
    }
 }

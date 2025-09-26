@@ -120,6 +120,11 @@ public partial class EditMemberPage : ContentPage
       }
    }
 
+   private async void OnManagePlansClicked(object sender, EventArgs e)
+   {
+      await Navigation.PushAsync(new MemberPlansPage(_memberId!, _member.Name!));
+   }
+
    #endregion
 }
 

@@ -15,6 +15,15 @@ public class FieldNameErrorHandlingTests
    [InlineData(typeof(Member), "teamId", "TeamId")]
    [InlineData(typeof(Member), "teamIds", "TeamIds")]
    [InlineData(typeof(Member), "birthdate", "Birthdate")]
+   [InlineData(typeof(MemberPlan), "type", "Type")]
+   [InlineData(typeof(MemberPlan), "name", "Name")]
+   [InlineData(typeof(MemberPlan), "totalCredits", "TotalCredits")]
+   [InlineData(typeof(MemberPlan), "remainingCredits", "RemainingCredits")]
+   [InlineData(typeof(MemberPlan), "validFrom", "ValidFrom")]
+   [InlineData(typeof(MemberPlan), "validUntil", "ValidUntil")]
+   [InlineData(typeof(MemberPlan), "status", "Status")]
+   [InlineData(typeof(MemberPlan), "createdAt", "CreatedAt")]
+   [InlineData(typeof(MemberPlan), "updatedAt", "UpdatedAt")]
    public void Should_Use_PascalCase_Instead_Of_CamelCase(Type modelType, string wrongFieldName, string correctFieldName)
    {
       // Verify that we're using the correct PascalCase field names
@@ -47,7 +56,8 @@ public class FieldNameErrorHandlingTests
          typeof(Member),
          typeof(Team),
          typeof(ClassSession),
-         typeof(AttendanceRecord)
+         typeof(AttendanceRecord),
+         typeof(MemberPlan)
       };
 
       foreach (var modelType in modelTypes)
@@ -90,7 +100,14 @@ public class FieldNameErrorHandlingTests
          "StartAt",
          "EndAt",
          "SessionId",
-         "MemberId"
+         "MemberId",
+         "Type",
+         "TotalCredits",
+         "RemainingCredits",
+         "ValidFrom",
+         "ValidUntil",
+         "CreatedAt",
+         "UpdatedAt"
       };
 
       var unexpectedCamelCaseFields = new[]
@@ -109,7 +126,14 @@ public class FieldNameErrorHandlingTests
          "startAt",
          "endAt",
          "sessionId",
-         "memberId"
+         "memberId",
+         "type",
+         "totalCredits",
+         "remainingCredits",
+         "validFrom",
+         "validUntil",
+         "createdAt",
+         "updatedAt"
       };
 
       // Verify expected field names are PascalCase

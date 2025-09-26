@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KickRoll.App.Views.EditMemberPlanPage"
+             Title="編輯會員方案">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <!-- 方案資訊 -->
+            <Frame BackgroundColor="LightGray" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="5">
+                    <Label x:Name="PlanNameLabel" Text="方案名稱" FontSize="16" FontAttributes="Bold"/>
+                    <Label x:Name="PlanIdLabel" Text="方案 ID" FontSize="12" TextColor="Gray"/>
+                    <Label x:Name="PlanTypeLabel" Text="方案類型" FontSize="12" TextColor="Gray"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- 剩餘堂數 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="剩餘堂數 *" FontSize="14" FontAttributes="Bold"/>
+                <Entry x:Name="RemainingCreditsEntry" Keyboard="Numeric"/>
+                <Label x:Name="RemainingCreditsValidationLabel" TextColor="Red" IsVisible="False"/>
+            </VerticalStackLayout>
+
+            <!-- 狀態 -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="狀態 *" FontSize="14" FontAttributes="Bold"/>
+                <Picker x:Name="StatusPicker" Title="選擇狀態">
+                    <Picker.Items>
+                        <x:String>active</x:String>
+                        <x:String>expired</x:String>
+                        <x:String>suspended</x:String>
+                    </Picker.Items>
+                </Picker>
+            </VerticalStackLayout>
+
+            <!-- 按鈕 -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button x:Name="SaveButton" 
+                        Text="儲存變更" 
+                        Clicked="OnSaveClicked"
+                        BackgroundColor="Green" 
+                        TextColor="White"
+                        MinimumWidthRequest="120"/>
+                <Button Text="取消" 
+                        Clicked="OnCancelClicked"
+                        BackgroundColor="Gray" 
+                        TextColor="White"
+                        MinimumWidthRequest="120"/>
+            </HorizontalStackLayout>
+
+            <Label x:Name="ResultLabel" TextColor="Red" HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

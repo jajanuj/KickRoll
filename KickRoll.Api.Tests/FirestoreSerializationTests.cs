@@ -192,4 +192,63 @@ public class FirestoreSerializationTests
       Assert.Contains("CoachIds", docData.Keys);
       Assert.Contains("ScheduleHints", docData.Keys);
    }
+
+   [Fact]
+   public void MemberPlan_Should_Serialize_With_PascalCase_Field_Names()
+   {
+      // Arrange
+      var plan = new MemberPlan
+      {
+         Id = "P001",
+         Type = "credit_pack",
+         Name = "10 Class Pack",
+         TotalCredits = 10,
+         RemainingCredits = 8,
+         ValidFrom = Timestamp.GetCurrentTimestamp(),
+         ValidUntil = Timestamp.FromDateTime(DateTime.UtcNow.AddMonths(3)),
+         Status = "active",
+         CreatedAt = Timestamp.GetCurrentTimestamp(),
+         UpdatedAt = Timestamp.GetCurrentTimestamp()
+      };
+
+      // Act
+      var docData = new Dictionary<string, object>();
+      var planType = typeof(MemberPlan);
+
+      foreach (var property in planType.GetProperties())
+      {
+         var firestoreProperty = property.GetCustomAttribute<FirestorePropertyAttribute>();
+         if (firestoreProperty != null)
+         {
+            var fieldName = firestoreProperty.Name ?? property.Name;
+            var value = property.GetValue(plan);
+            if (value != null)
+            {
+               docData[fieldName] = value;
+            }
+         }
+      }
+
+      // Assert - All field names should be PascalCase
+      Assert.Contains("Type", docData.Keys);
+      Assert.Contains("Name", docData.Keys);
+      Assert.Contains("TotalCredits", docData.Keys);
+      Assert.Contains("RemainingCredits", docData.Keys);
+      Assert.Contains("ValidFrom", docData.Keys);
+      Assert.Contains("ValidUntil", docData.Keys);
+      Assert.Contains("Status", docData.Keys);
+      Assert.Contains("CreatedAt", docData.Keys);
+      Assert.Contains("UpdatedAt", docData.Keys);
+
+      // Verify no camelCase field names exist
+      Assert.DoesNotContain("type", docData.Keys);
+      Assert.DoesNotContain("name", docData.Keys);
+      Assert.DoesNotContain("totalCredits", docData.Keys);
+      Assert.DoesNotContain("remainingCredits", docData.Keys);
+      Assert.DoesNotContain("validFrom", docData.Keys);
+      Assert.DoesNotContain("validUntil", docData.Keys);
+      Assert.DoesNotContain("status", docData.Keys);
+      Assert.DoesNotContain("createdAt", docData.Keys);
+      Assert.DoesNotContain("updatedAt", docData.Keys);
+   }
 }
