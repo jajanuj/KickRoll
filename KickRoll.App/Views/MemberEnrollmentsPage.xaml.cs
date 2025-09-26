@@ -3,6 +3,37 @@ using System.Text.Json;
 
 namespace KickRoll.App.Views;
 
+// API Response DTOs - must match the API response structure
+public class SessionEnrollmentResponse
+{
+    public string Id { get; set; } = default!;
+    public string CourseId { get; set; } = default!;
+    public string TeamId { get; set; } = default!;
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public int Capacity { get; set; }
+    public int EnrolledCount { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class MemberEnrollmentsResponse
+{
+    public string EnrollmentId { get; set; } = default!;
+    public string SessionId { get; set; } = default!;
+    public string Status { get; set; } = default!;
+    public DateTime CreatedAt { get; set; }
+    public SessionEnrollmentResponse Session { get; set; } = default!;
+    
+    // Additional properties for UI display
+    public Color StatusColor => Status switch
+    {
+        "enrolled" => Colors.Green,
+        "cancelled" => Colors.Orange,
+        _ => Colors.Gray
+    };
+}
+
 public partial class MemberEnrollmentsPage : ContentPage
 {
     private readonly HttpClient _httpClient = new HttpClient
@@ -12,35 +43,6 @@ public partial class MemberEnrollmentsPage : ContentPage
 
     private readonly string _memberId;
     private readonly string _memberName;
-
-    public class SessionEnrollmentDisplay
-    {
-        public string Id { get; set; } = default!;
-        public string CourseId { get; set; } = default!;
-        public string TeamId { get; set; } = default!;
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public int Capacity { get; set; }
-        public int EnrolledCount { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
-
-    public class MemberEnrollmentDisplay
-    {
-        public string EnrollmentId { get; set; } = default!;
-        public string SessionId { get; set; } = default!;
-        public string Status { get; set; } = default!;
-        public DateTime CreatedAt { get; set; }
-        public SessionEnrollmentDisplay Session { get; set; } = default!;
-
-        public Color StatusColor => Status switch
-        {
-            "enrolled" => Colors.Green,
-            "cancelled" => Colors.Orange,
-            _ => Colors.Gray
-        };
-    }
 
     public MemberEnrollmentsPage(string memberId, string memberName)
     {
@@ -77,7 +79,26 @@ public partial class MemberEnrollmentsPage : ContentPage
             var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
             var url = $"api/members/{_memberId}/enrollments{queryString}";
 
-            var enrollments = await _httpClient.GetFromJsonAsync<List<MemberEnrollmentDisplay>>(url);
+            // Add debug logging
+            System.Diagnostics.Debug.WriteLine($"Loading enrollments from URL: {url}");
+
+            var response = await _httpClient.GetAsync(url);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            // Debug the response
+            System.Diagnostics.Debug.WriteLine($"Response Status: {response.StatusCode}");
+            System.Diagnostics.Debug.WriteLine($"Response Content: {responseContent}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ResultLabel.TextColor = Colors.Red;
+                ResultLabel.Text = $"❌ API 錯誤：{response.StatusCode} - {responseContent}";
+                EnrollmentsCollection.IsVisible = false;
+                NoDataLabel.IsVisible = true;
+                return;
+            }
+
+            var enrollments = await response.Content.ReadFromJsonAsync<List<MemberEnrollmentsResponse>>();
             
             if (enrollments != null && enrollments.Count > 0)
             {
@@ -96,6 +117,12 @@ public partial class MemberEnrollmentsPage : ContentPage
                 
                 ResultLabel.TextColor = Colors.Gray;
                 ResultLabel.Text = "無報名紀錄";
+                
+                // Show the raw response for debugging
+                if (!string.IsNullOrEmpty(responseContent))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Empty enrollments but got response: {responseContent}");
+                }
             }
         }
         catch (Exception ex)
@@ -106,6 +133,9 @@ public partial class MemberEnrollmentsPage : ContentPage
             
             ResultLabel.TextColor = Colors.Red;
             ResultLabel.Text = $"❌ 載入報名紀錄失敗：{ex.Message}";
+            
+            // Debug the full exception
+            System.Diagnostics.Debug.WriteLine($"Exception loading enrollments: {ex}");
         }
     }
 

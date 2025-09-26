@@ -15,15 +15,15 @@
         </Frame>
 
         <!-- Date Filter -->
-        <Frame BackgroundColor="LightGray" Padding="10" CornerRadius="8">
+        <Frame BackgroundColor="DarkBlue" Padding="10" CornerRadius="8">
             <VerticalStackLayout Spacing="5">
-                <Label Text="日期篩選" FontAttributes="Bold" />
+                <Label Text="日期篩選" FontAttributes="Bold" TextColor="White" />
                 <HorizontalStackLayout Spacing="10">
-                    <DatePicker x:Name="FromDatePicker" />
-                    <Label Text="至" VerticalOptions="Center" />
-                    <DatePicker x:Name="ToDatePicker" />
+                    <DatePicker x:Name="FromDatePicker" BackgroundColor="White" />
+                    <Label Text="至" VerticalOptions="Center" TextColor="White" />
+                    <DatePicker x:Name="ToDatePicker" BackgroundColor="White" />
                 </HorizontalStackLayout>
-                <Button Text="篩選" Clicked="OnFilterClicked" />
+                <Button Text="篩選" Clicked="OnFilterClicked" BackgroundColor="White" TextColor="DarkBlue" />
             </VerticalStackLayout>
         </Frame>
 
