@@ -57,6 +57,7 @@ public class SessionsController : ControllerBase
             EndAt = doc.ContainsField("EndAt") ? doc.GetValue<Timestamp>("EndAt").ToDateTime() : DateTime.MinValue,
             Location = doc.ContainsField("Location") ? doc.GetValue<string>("Location") : "",
             Capacity = doc.ContainsField("Capacity") ? doc.GetValue<int>("Capacity") : 0,
+            EnrolledCount = doc.ContainsField("EnrolledCount") ? doc.GetValue<int>("EnrolledCount") : 0,
             Status = doc.ContainsField("Status") ? doc.GetValue<string>("Status") : "Unknown"
          });
       }
@@ -80,7 +81,7 @@ public class SessionsController : ControllerBase
          // Run transaction to ensure atomicity
          var result = await _db.RunTransactionAsync(async transaction =>
          {
-            var sessionRef = _db.Collection("sessions").Document(sessionId);
+            var sessionRef = _db.Collection("class_sessions").Document(sessionId);
             var sessionSnap = await transaction.GetSnapshotAsync(sessionRef);
 
             if (!sessionSnap.Exists)
@@ -89,8 +90,8 @@ public class SessionsController : ControllerBase
             }
 
             // Get session data
-            var capacity = sessionSnap.GetValue<int>("Capacity");
-            var enrolled = sessionSnap.GetValue<int>("EnrolledCount");
+            var capacity = sessionSnap.ContainsField("Capacity") ? sessionSnap.GetValue<int>("Capacity") : 0;
+            var enrolled = sessionSnap.ContainsField("EnrolledCount") ? sessionSnap.GetValue<int>("EnrolledCount") : 0;
 
             // Check capacity
             if (enrolled >= capacity)
@@ -121,10 +122,10 @@ public class SessionsController : ControllerBase
             // Increment enrolled count only if it's a new enrollment
             if (!enrollSnap.Exists || enrollSnap.GetValue<string>("Status") != "enrolled")
             {
-               transaction.Update(sessionRef, new Dictionary<string, object>
+               transaction.Set(sessionRef, new Dictionary<string, object>
                {
                   { "EnrolledCount", FieldValue.Increment(1) }
-               });
+               }, SetOptions.MergeAll);
             }
 
             return new EnrollmentResponse
@@ -171,7 +172,7 @@ public class SessionsController : ControllerBase
          // Run transaction to ensure atomicity
          var result = await _db.RunTransactionAsync(async transaction =>
          {
-            var sessionRef = _db.Collection("sessions").Document(sessionId);
+            var sessionRef = _db.Collection("class_sessions").Document(sessionId);
             var sessionSnap = await transaction.GetSnapshotAsync(sessionRef);
 
             if (!sessionSnap.Exists)
@@ -194,10 +195,10 @@ public class SessionsController : ControllerBase
             });
 
             // Decrement enrolled count
-            transaction.Update(sessionRef, new Dictionary<string, object>
+            transaction.Set(sessionRef, new Dictionary<string, object>
             {
                { "EnrolledCount", FieldValue.Increment(-1) }
-            });
+            }, SetOptions.MergeAll);
 
             return new EnrollmentResponse
             {

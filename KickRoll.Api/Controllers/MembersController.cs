@@ -586,7 +586,7 @@ public class MembersController : ControllerBase
             var sessionId = doc.GetValue<string>("SessionId");
             
             // Get session details
-            var sessionRef = _db.Collection("sessions").Document(sessionId);
+            var sessionRef = _db.Collection("class_sessions").Document(sessionId);
             var sessionSnapshot = await sessionRef.GetSnapshotAsync();
 
             if (sessionSnapshot.Exists)
@@ -594,14 +594,14 @@ public class MembersController : ControllerBase
                var sessionData = new SessionEnrollmentResponse
                {
                   Id = sessionSnapshot.Id,
-                  CourseId = sessionSnapshot.GetValue<string>("CourseId"),
-                  TeamId = sessionSnapshot.GetValue<string>("TeamId"),
-                  StartTime = sessionSnapshot.GetValue<Timestamp>("StartTime").ToDateTime(),
-                  EndTime = sessionSnapshot.GetValue<Timestamp>("EndTime").ToDateTime(),
-                  Capacity = sessionSnapshot.GetValue<int>("Capacity"),
-                  EnrolledCount = sessionSnapshot.GetValue<int>("EnrolledCount"),
-                  CreatedAt = sessionSnapshot.GetValue<Timestamp>("CreatedAt").ToDateTime(),
-                  UpdatedAt = sessionSnapshot.GetValue<Timestamp>("UpdatedAt").ToDateTime()
+                  CourseId = sessionSnapshot.ContainsField("CourseId") ? sessionSnapshot.GetValue<string>("CourseId") : "",
+                  TeamId = sessionSnapshot.ContainsField("TeamId") ? sessionSnapshot.GetValue<string>("TeamId") : "",
+                  StartTime = sessionSnapshot.ContainsField("StartAt") ? sessionSnapshot.GetValue<Timestamp>("StartAt").ToDateTime() : DateTime.MinValue,
+                  EndTime = sessionSnapshot.ContainsField("EndAt") ? sessionSnapshot.GetValue<Timestamp>("EndAt").ToDateTime() : DateTime.MinValue,
+                  Capacity = sessionSnapshot.ContainsField("Capacity") ? sessionSnapshot.GetValue<int>("Capacity") : 0,
+                  EnrolledCount = sessionSnapshot.ContainsField("EnrolledCount") ? sessionSnapshot.GetValue<int>("EnrolledCount") : 0,
+                  CreatedAt = sessionSnapshot.ContainsField("CreatedAt") ? sessionSnapshot.GetValue<Timestamp>("CreatedAt").ToDateTime() : DateTime.MinValue,
+                  UpdatedAt = sessionSnapshot.ContainsField("UpdatedAt") ? sessionSnapshot.GetValue<Timestamp>("UpdatedAt").ToDateTime() : DateTime.MinValue
                };
 
                enrollments.Add(new MemberEnrollmentsResponse
