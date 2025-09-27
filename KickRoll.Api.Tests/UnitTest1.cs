@@ -207,4 +207,42 @@ public class FirestoreFieldNamingTests
          }
       }
    }
+
+   [Fact]
+   public void EnrolledMemberResponse_Properties_Should_Be_Correctly_Defined()
+   {
+      // Test the new enrolled member DTO structure
+      var member = new EnrolledMemberResponse
+      {
+         MemberId = "M123",
+         Name = "測試成員",
+         EnrolledAt = DateTime.UtcNow
+      };
+
+      Assert.Equal("M123", member.MemberId);
+      Assert.Equal("測試成員", member.Name);
+      Assert.True(member.EnrolledAt <= DateTime.UtcNow);
+   }
+
+   [Fact]
+   public void SessionEnrolledMembersResponse_Properties_Should_Be_Correctly_Defined()
+   {
+      // Test the new session enrolled members response DTO structure
+      var response = new SessionEnrolledMembersResponse
+      {
+         SessionId = "S123",
+         TotalCount = 2,
+         Members = new List<EnrolledMemberResponse>
+         {
+            new EnrolledMemberResponse { MemberId = "M1", Name = "成員1", EnrolledAt = DateTime.UtcNow },
+            new EnrolledMemberResponse { MemberId = "M2", Name = "成員2", EnrolledAt = DateTime.UtcNow }
+         }
+      };
+
+      Assert.Equal("S123", response.SessionId);
+      Assert.Equal(2, response.TotalCount);
+      Assert.Equal(2, response.Members.Count);
+      Assert.Equal("M1", response.Members[0].MemberId);
+      Assert.Equal("成員1", response.Members[0].Name);
+   }
 }

@@ -65,6 +65,52 @@ public class SessionsController : ControllerBase
       return Ok(sessions);
    }
 
+   [HttpGet("{sessionId}")]
+   public async Task<IActionResult> GetSession(string sessionId)
+   {
+      try
+      {
+         var sessionRef = _db.Collection("class_sessions").Document(sessionId);
+         var sessionSnapshot = await sessionRef.GetSnapshotAsync();
+         
+         if (!sessionSnapshot.Exists)
+         {
+            return NotFound(new { error = "Session not found" });
+         }
+
+         string teamId = sessionSnapshot.ContainsField("TeamId") ? sessionSnapshot.GetValue<string>("TeamId") : "";
+         string teamName = teamId;
+
+         if (!string.IsNullOrEmpty(teamId))
+         {
+            var teamDoc = await _db.Collection("teams").Document(teamId).GetSnapshotAsync();
+            if (teamDoc.Exists && teamDoc.ContainsField("Name"))
+            {
+               teamName = teamDoc.GetValue<string>("Name");
+            }
+         }
+
+         var sessionData = new
+         {
+            SessionId = sessionSnapshot.Id,
+            TeamId = teamId,
+            TeamName = teamName,
+            StartAt = sessionSnapshot.ContainsField("StartAt") ? sessionSnapshot.GetValue<Timestamp>("StartAt").ToDateTime() : DateTime.MinValue,
+            EndAt = sessionSnapshot.ContainsField("EndAt") ? sessionSnapshot.GetValue<Timestamp>("EndAt").ToDateTime() : DateTime.MinValue,
+            Location = sessionSnapshot.ContainsField("Location") ? sessionSnapshot.GetValue<string>("Location") : "",
+            Capacity = sessionSnapshot.ContainsField("Capacity") ? sessionSnapshot.GetValue<int>("Capacity") : 0,
+            EnrolledCount = sessionSnapshot.ContainsField("EnrolledCount") ? sessionSnapshot.GetValue<int>("EnrolledCount") : 0,
+            Status = sessionSnapshot.ContainsField("Status") ? sessionSnapshot.GetValue<string>("Status") : "Unknown"
+         };
+
+         return Ok(sessionData);
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = "internal_error", message = $"Failed to get session: {ex.Message}" });
+      }
+   }
+
    // Enrollment endpoints
    
    [HttpPost("{sessionId}/enroll")]
@@ -219,6 +265,71 @@ public class SessionsController : ControllerBase
       catch (Exception ex)
       {
          return StatusCode(500, new { error = "internal_error", message = $"Failed to cancel enrollment: {ex.Message}" });
+      }
+   }
+
+   [HttpGet("{sessionId}/enrolled-members")]
+   public async Task<IActionResult> GetEnrolledMembers(string sessionId)
+   {
+      try
+      {
+         // Validate session exists
+         var sessionRef = _db.Collection("class_sessions").Document(sessionId);
+         var sessionSnapshot = await sessionRef.GetSnapshotAsync();
+         
+         if (!sessionSnapshot.Exists)
+         {
+            return NotFound(new { error = "Session not found" });
+         }
+
+         var enrolledMembers = new List<object>();
+
+         // Get all enrollments for this session
+         var enrollmentsQuery = sessionRef.Collection("enrollments")
+            .WhereEqualTo("Status", "enrolled");
+         var enrollmentsSnapshot = await enrollmentsQuery.GetSnapshotAsync();
+
+         // For each enrollment, get the member details
+         foreach (var enrollmentDoc in enrollmentsSnapshot.Documents)
+         {
+            var memberId = enrollmentDoc.GetValue<string>("MemberId");
+            
+            // Get member details
+            var memberRef = _db.Collection("members").Document(memberId);
+            var memberSnapshot = await memberRef.GetSnapshotAsync();
+            
+            if (memberSnapshot.Exists)
+            {
+               var memberName = memberSnapshot.ContainsField("Name") 
+                  ? memberSnapshot.GetValue<string>("Name") 
+                  : "Unknown Member";
+               
+               enrolledMembers.Add(new
+               {
+                  MemberId = memberId,
+                  Name = memberName,
+                  EnrolledAt = enrollmentDoc.ContainsField("CreatedAt") 
+                     ? enrollmentDoc.GetValue<Timestamp>("CreatedAt").ToDateTime()
+                     : DateTime.MinValue
+               });
+            }
+         }
+
+         // Sort by name ascending
+         var sortedMembers = enrolledMembers
+            .OrderBy(m => ((dynamic)m).Name)
+            .ToList();
+
+         return Ok(new 
+         { 
+            sessionId = sessionId,
+            totalCount = sortedMembers.Count,
+            members = sortedMembers 
+         });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = "internal_error", message = $"Failed to get enrolled members: {ex.Message}" });
       }
    }
 }

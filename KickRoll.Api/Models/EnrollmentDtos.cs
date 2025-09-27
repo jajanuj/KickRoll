@@ -38,6 +38,20 @@ public class MemberEnrollmentsResponse
     public SessionEnrollmentResponse Session { get; set; } = default!;
 }
 
+public class EnrolledMemberResponse
+{
+    public string MemberId { get; set; } = default!;
+    public string Name { get; set; } = default!;
+    public DateTime EnrolledAt { get; set; }
+}
+
+public class SessionEnrolledMembersResponse
+{
+    public string SessionId { get; set; } = default!;
+    public int TotalCount { get; set; }
+    public List<EnrolledMemberResponse> Members { get; set; } = new List<EnrolledMemberResponse>();
+}
+
 // Custom exceptions
 public class CapacityFullException : Exception
 {
