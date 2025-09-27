@@ -19,13 +19,9 @@
             <VerticalStackLayout Spacing="5">
                 <Label Text="日期篩選" FontAttributes="Bold" TextColor="White" />
                 <HorizontalStackLayout Spacing="10">
-                    <DatePicker x:Name="FromDatePicker" 
-                                BackgroundColor="White" 
-                                TextColor="Black" />
+                    <DatePicker x:Name="FromDatePicker" />
                     <Label Text="至" VerticalOptions="Center" TextColor="White" />
-                    <DatePicker x:Name="ToDatePicker" 
-                                BackgroundColor="White" 
-                                TextColor="Black" />
+                    <DatePicker x:Name="ToDatePicker" />
                 </HorizontalStackLayout>
                 <Button Text="篩選" Clicked="OnFilterClicked" BackgroundColor="White" TextColor="DarkBlue" />
                 <Button Text="測試連線" Clicked="OnTestConnectionClicked" BackgroundColor="Orange" TextColor="White" FontSize="12" />
