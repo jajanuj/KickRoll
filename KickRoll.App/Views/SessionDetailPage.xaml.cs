@@ -412,6 +412,18 @@ public partial class SessionDetailPage : ContentPage
     {
         try
         {
+            // Refresh the session data to get updated enrollment count
+            var updatedSession = await _httpClient.GetFromJsonAsync<SessionsListPage.SessionOption>($"api/sessions/{_session.SessionId}");
+            if (updatedSession != null)
+            {
+                // Update the enrollment count in the current session object
+                _session.EnrolledCount = updatedSession.EnrolledCount;
+                
+                // Force UI to update the capacity display binding
+                // Since CapacityDisplay is a computed property, we need to trigger property change notification
+                OnPropertyChanged(nameof(_session.CapacityDisplay));
+            }
+            
             // Refresh the enrolled members list to show updated data
             await Task.Delay(500); // Small delay to ensure server has processed the change
             LoadEnrolledMembers();
@@ -421,5 +433,13 @@ public partial class SessionDetailPage : ContentPage
             // Log the error but don't show it to user as this is secondary
             System.Diagnostics.Debug.WriteLine($"Failed to refresh session info: {ex.Message}");
         }
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        // Trigger binding context refresh to update computed properties
+        var currentContext = BindingContext;
+        BindingContext = null;
+        BindingContext = currentContext;
     }
 }

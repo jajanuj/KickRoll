@@ -65,6 +65,52 @@ public class SessionsController : ControllerBase
       return Ok(sessions);
    }
 
+   [HttpGet("{sessionId}")]
+   public async Task<IActionResult> GetSession(string sessionId)
+   {
+      try
+      {
+         var sessionRef = _db.Collection("class_sessions").Document(sessionId);
+         var sessionSnapshot = await sessionRef.GetSnapshotAsync();
+         
+         if (!sessionSnapshot.Exists)
+         {
+            return NotFound(new { error = "Session not found" });
+         }
+
+         string teamId = sessionSnapshot.ContainsField("TeamId") ? sessionSnapshot.GetValue<string>("TeamId") : "";
+         string teamName = teamId;
+
+         if (!string.IsNullOrEmpty(teamId))
+         {
+            var teamDoc = await _db.Collection("teams").Document(teamId).GetSnapshotAsync();
+            if (teamDoc.Exists && teamDoc.ContainsField("Name"))
+            {
+               teamName = teamDoc.GetValue<string>("Name");
+            }
+         }
+
+         var sessionData = new
+         {
+            SessionId = sessionSnapshot.Id,
+            TeamId = teamId,
+            TeamName = teamName,
+            StartAt = sessionSnapshot.ContainsField("StartAt") ? sessionSnapshot.GetValue<Timestamp>("StartAt").ToDateTime() : DateTime.MinValue,
+            EndAt = sessionSnapshot.ContainsField("EndAt") ? sessionSnapshot.GetValue<Timestamp>("EndAt").ToDateTime() : DateTime.MinValue,
+            Location = sessionSnapshot.ContainsField("Location") ? sessionSnapshot.GetValue<string>("Location") : "",
+            Capacity = sessionSnapshot.ContainsField("Capacity") ? sessionSnapshot.GetValue<int>("Capacity") : 0,
+            EnrolledCount = sessionSnapshot.ContainsField("EnrolledCount") ? sessionSnapshot.GetValue<int>("EnrolledCount") : 0,
+            Status = sessionSnapshot.ContainsField("Status") ? sessionSnapshot.GetValue<string>("Status") : "Unknown"
+         };
+
+         return Ok(sessionData);
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = "internal_error", message = $"Failed to get session: {ex.Message}" });
+      }
+   }
+
    // Enrollment endpoints
    
    [HttpPost("{sessionId}/enroll")]
