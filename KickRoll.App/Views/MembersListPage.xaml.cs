@@ -20,6 +20,10 @@ public partial class MembersListPage : ContentPage
 
       [JsonPropertyName("status")]
       public string Status { get; set; }
+
+      // 新增 TeamNames 屬性修復綁定警告
+      [JsonPropertyName("teamNames")]
+      public string TeamNames { get; set; } = "(未分配隊伍)";
    }
 
    public MembersListPage()
@@ -44,9 +48,9 @@ public partial class MembersListPage : ContentPage
       }
    }
 
-   private async void OnMemberSelected(object sender, SelectionChangedEventArgs e)
+   private async void OnEditMemberClicked(object sender, EventArgs e)
    {
-      if (e.CurrentSelection.FirstOrDefault() is MemberOption selected)
+      if (sender is Button button && button.CommandParameter is MemberOption selected)
       {
          try
          {
@@ -61,6 +65,22 @@ public partial class MembersListPage : ContentPage
          {
             await DisplayAlert("錯誤", $"無法載入成員資料：{ex.Message}", "OK");
          }
+      }
+   }
+
+   private async void OnViewEnrollmentsClicked(object sender, EventArgs e)
+   {
+      if (sender is Button button && button.CommandParameter is MemberOption selected)
+      {
+         await Navigation.PushAsync(new MemberEnrollmentsPage(selected.MemberId, selected.Name ?? "未知會員"));
+      }
+   }
+
+   private async void OnManagePlansClicked(object sender, EventArgs e)
+   {
+      if (sender is Button button && button.CommandParameter is MemberOption selected)
+      {
+         await Navigation.PushAsync(new MemberPlansPage(selected.MemberId, selected.Name ?? "未知會員"));
       }
    }
 
