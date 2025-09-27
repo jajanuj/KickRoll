@@ -100,6 +100,44 @@
         </Setter>
     </Style>
 
+    <!-- Custom style for date filter DatePickers to ensure hover/focus states work with explicit colors -->
+    <Style TargetType="DatePicker" x:Key="DateFilterPickerStyle">
+        <Setter Property="FontFamily" Value="OpenSansRegular"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor" Value="Black" />
+                            <Setter Property="BackgroundColor" Value="White" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor" Value="{StaticResource Gray300}" />
+                            <Setter Property="BackgroundColor" Value="{StaticResource Gray100}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor" Value="{StaticResource Gray950}" />
+                            <Setter Property="BackgroundColor" Value="{StaticResource Gray100}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Focused">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor" Value="{StaticResource Gray950}" />
+                            <Setter Property="BackgroundColor" Value="{StaticResource Gray100}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
     <Style TargetType="Editor">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
