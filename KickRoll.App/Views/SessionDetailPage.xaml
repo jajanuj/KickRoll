@@ -23,7 +23,16 @@
             <!-- Enrollment Section -->
             <Label Text="--- 報名功能 ---" FontSize="20" FontAttributes="Bold" />
             
-            <Entry x:Name="MemberIdEntry" Placeholder="輸入會員 ID" />
+            <Label x:Name="LoadingLabel" Text="載入會員名單中..." IsVisible="False" />
+            <StackLayout x:Name="ErrorPanel" IsVisible="False" Orientation="Horizontal">
+                <Label x:Name="ErrorLabel" Text="❌ 載入會員名單失敗" TextColor="Red" />
+                <Button x:Name="RetryButton" Text="重試" Clicked="OnRetryClicked" />
+            </StackLayout>
+            <Picker x:Name="MemberPicker" 
+                    Title="選擇會員" 
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedIndexChanged="OnMemberPickerSelectedIndexChanged" 
+                    IsEnabled="False" />
             
             <HorizontalStackLayout Spacing="10">
                 <Button x:Name="EnrollButton" 

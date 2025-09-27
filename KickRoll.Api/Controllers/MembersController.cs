@@ -160,6 +160,25 @@ public class MembersController : ControllerBase
       return Ok(members);
    }
 
+   [HttpGet("dropdown")]
+   public async Task<IActionResult> GetMembersForDropdown()
+   {
+      var snapshot = await _db.Collection("members").GetSnapshotAsync();
+
+      var members = snapshot.Documents
+         .Where(doc => doc.Exists)
+         .Select(doc => new
+         {
+            Id = doc.Id,
+            Name = doc.ContainsField("Name") ? doc.GetValue<string>("Name") : "(未命名)"
+         })
+         .Where(m => !string.IsNullOrWhiteSpace(m.Name) && m.Name != "(未命名)")
+         .OrderBy(m => m.Name)
+         .ToList();
+
+      return Ok(members);
+   }
+
    [HttpPost]
    public async Task<IActionResult> CreateMember([FromBody] CreateMemberRequest request)
    {
