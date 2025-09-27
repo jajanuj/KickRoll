@@ -1,5 +1,7 @@
 using Google.Cloud.Firestore;
+using KickRoll.Api.Attributes;
 using KickRoll.Api.Models;
+using KickRoll.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KickRoll.Api.Controllers;
@@ -30,16 +32,20 @@ public class CreateMemberRequest
 
 [ApiController]
 [Route("api/[controller]")]
+[RequireAuth] // All endpoints require authentication
 public class MembersController : ControllerBase
 {
    private readonly FirestoreDb _db;
+   private readonly IAuditService _auditService;
 
-   public MembersController(FirestoreDb db)
+   public MembersController(FirestoreDb db, IAuditService auditService)
    {
       _db = db;
+      _auditService = auditService;
    }
 
    [HttpGet("byTeam/{teamId}")]
+   [RequireCoachOrAdmin] // Only coaches and admins can view team members
    public async Task<IActionResult> GetMembersByTeam(string teamId)
    {
       var snapshot = await _db.Collection("members")
@@ -74,6 +80,7 @@ public class MembersController : ControllerBase
    //}
 
    [HttpPut("{memberId}")]
+   [RequireCoachOrAdmin] // Only coaches and admins can update members
    public async Task<IActionResult> UpdateMember(string memberId, [FromBody] Member member)
    {
       // Check for duplicate name (excluding the current member being updated)
@@ -115,6 +122,12 @@ public class MembersController : ControllerBase
 
       await docRef.SetAsync(updates, SetOptions.MergeAll);
 
+      // Audit log
+      var actorUserId = HttpContext.User.FindFirst("user_id")?.Value ?? "";
+      var clientIp = GetClientIp();
+      await _auditService.LogAsync("MEMBER_UPDATED", "Member", memberId, actorUserId, 
+         new Dictionary<string, object> { ["memberName"] = member.Name }, clientIp);
+
       return Ok(new { success = true });
    }
 
@@ -134,6 +147,7 @@ public class MembersController : ControllerBase
    //}
 
    [HttpGet("list")]
+   [RequireCoachOrAdmin] // Only coaches and admins can list all members
    public async Task<IActionResult> GetAllMembers()
    {
       var snapshot = await _db.Collection("members").GetSnapshotAsync();
@@ -180,6 +194,7 @@ public class MembersController : ControllerBase
    }
 
    [HttpPost]
+   [RequireCoachOrAdmin] // Only coaches and admins can create members
    public async Task<IActionResult> CreateMember([FromBody] CreateMemberRequest request)
    {
       if (string.IsNullOrWhiteSpace(request.Name))
@@ -227,6 +242,12 @@ public class MembersController : ControllerBase
          };
 
          await newDocRef.SetAsync(newMember);
+
+         // Audit log
+         var actorUserId = HttpContext.User.FindFirst("user_id")?.Value ?? "";
+         var clientIp = GetClientIp();
+         await _auditService.LogAsync("MEMBER_CREATED", "Member", newDocRef.Id, actorUserId, 
+            new Dictionary<string, object> { ["memberName"] = request.Name }, clientIp);
 
          return Ok(new { success = true, memberId = newDocRef.Id, message = "成員新增成功" });
       }
@@ -858,5 +879,16 @@ public class MembersController : ControllerBase
          // Log the error but don't fail the main operation
          Console.WriteLine($"Warning: Failed to update expired plans for member {memberId}: {ex.Message}");
       }
+   }
+
+   private string? GetClientIp()
+   {
+      var forwardedHeader = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+      if (!string.IsNullOrEmpty(forwardedHeader))
+      {
+         return forwardedHeader.Split(',')[0].Trim();
+      }
+
+      return HttpContext.Connection.RemoteIpAddress?.ToString();
    }
 }
