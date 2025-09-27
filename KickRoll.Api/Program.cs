@@ -49,3 +49,6 @@ app.MapControllers();
 Console.WriteLine("✅ KickRoll.Api 已啟動，Firestore 應該初始化完成！");
 
 app.Run();
+
+// Make the Program class public for testing
+public partial class Program { }

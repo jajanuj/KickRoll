@@ -11,6 +11,7 @@ public partial class SessionDetailPage : ContentPage
 
     private readonly SessionsListPage.SessionOption _session;
     private List<MemberDropdownOption> _allMembers = new List<MemberDropdownOption>();
+    private List<MemberDropdownOption> _filteredMembers = new List<MemberDropdownOption>();
     private string _selectedMemberId = string.Empty;
 
     public class EnrollmentRequest
@@ -71,13 +72,16 @@ public partial class SessionDetailPage : ContentPage
             LoadingLabel.IsVisible = true;
             ErrorPanel.IsVisible = false;
             MemberPicker.IsEnabled = false;
+            SearchEntry.IsEnabled = false;
             
             var members = await _httpClient.GetFromJsonAsync<List<MemberDropdownOption>>("api/members/dropdown");
             if (members != null)
             {
                 _allMembers = members;
-                MemberPicker.ItemsSource = _allMembers;
+                _filteredMembers = new List<MemberDropdownOption>(_allMembers);
+                UpdatePickerItemsSource();
                 MemberPicker.IsEnabled = true;
+                SearchEntry.IsEnabled = true;
             }
         }
         catch (Exception ex)
@@ -100,13 +104,57 @@ public partial class SessionDetailPage : ContentPage
     {
         if (_allMembers != null && !string.IsNullOrEmpty(memberId))
         {
-            var member = _allMembers.FirstOrDefault(m => m.Id == memberId);
+            var member = _filteredMembers.FirstOrDefault(m => m.Id == memberId);
             if (member != null)
             {
                 MemberPicker.SelectedItem = member;
                 _selectedMemberId = memberId;
             }
+            else
+            {
+                // Member is not in current filtered list, clear search to show all
+                SearchEntry.Text = string.Empty;
+                _filteredMembers = new List<MemberDropdownOption>(_allMembers);
+                UpdatePickerItemsSource();
+                
+                member = _filteredMembers.FirstOrDefault(m => m.Id == memberId);
+                if (member != null)
+                {
+                    MemberPicker.SelectedItem = member;
+                    _selectedMemberId = memberId;
+                }
+            }
         }
+    }
+
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        var searchText = e.NewTextValue?.Trim().ToLower() ?? string.Empty;
+        
+        if (string.IsNullOrEmpty(searchText))
+        {
+            _filteredMembers = new List<MemberDropdownOption>(_allMembers);
+        }
+        else
+        {
+            _filteredMembers = _allMembers.Where(m => 
+                m.Name.ToLower().Contains(searchText)).ToList();
+        }
+        
+        UpdatePickerItemsSource();
+        
+        // Clear selection if current selection is not in filtered results
+        if (_selectedMemberId != null && !_filteredMembers.Any(m => m.Id == _selectedMemberId))
+        {
+            MemberPicker.SelectedItem = null;
+            _selectedMemberId = string.Empty;
+        }
+    }
+
+    private void UpdatePickerItemsSource()
+    {
+        MemberPicker.ItemsSource = null;
+        MemberPicker.ItemsSource = _filteredMembers;
     }
 
     private void OnMemberPickerSelectedIndexChanged(object sender, EventArgs e)

@@ -28,6 +28,12 @@
                 <Label x:Name="ErrorLabel" Text="❌ 載入會員名單失敗" TextColor="Red" />
                 <Button x:Name="RetryButton" Text="重試" Clicked="OnRetryClicked" />
             </StackLayout>
+            
+            <Entry x:Name="SearchEntry" 
+                   Placeholder="搜尋會員姓名..." 
+                   TextChanged="OnSearchTextChanged" 
+                   IsEnabled="False" />
+            
             <Picker x:Name="MemberPicker" 
                     Title="選擇會員" 
                     ItemDisplayBinding="{Binding Name}"
