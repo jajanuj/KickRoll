@@ -10,6 +10,9 @@ public partial class SessionDetailPage : ContentPage
     };
 
     private readonly SessionsListPage.SessionOption _session;
+    private List<MemberDropdownOption> _allMembers = new List<MemberDropdownOption>();
+    private List<MemberDropdownOption> _filteredMembers = new List<MemberDropdownOption>();
+    private string _selectedMemberId = string.Empty;
 
     public class EnrollmentRequest
     {
@@ -23,12 +26,19 @@ public partial class SessionDetailPage : ContentPage
         public bool IsPresent { get; set; } // 綁定 CheckBox
     }
 
+    public class MemberDropdownOption
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+    }
+
     public SessionDetailPage(SessionsListPage.SessionOption session)
     {
         InitializeComponent();
         _session = session;
         BindingContext = session;
         LoadMembers(session.TeamId);
+        LoadMembersForDropdown();
     }
 
     private async void LoadMembers(string teamId)
@@ -52,6 +62,111 @@ public partial class SessionDetailPage : ContentPage
         catch (Exception ex)
         {
             ResultLabel.Text = $"❌ 載入成員失敗：{ex.Message}";
+        }
+    }
+
+    private async void LoadMembersForDropdown()
+    {
+        try
+        {
+            LoadingLabel.IsVisible = true;
+            ErrorPanel.IsVisible = false;
+            MemberPicker.IsEnabled = false;
+            SearchEntry.IsEnabled = false;
+            
+            var members = await _httpClient.GetFromJsonAsync<List<MemberDropdownOption>>("api/members/dropdown");
+            if (members != null)
+            {
+                _allMembers = members;
+                _filteredMembers = new List<MemberDropdownOption>(_allMembers);
+                UpdatePickerItemsSource();
+                MemberPicker.IsEnabled = true;
+                SearchEntry.IsEnabled = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorLabel.Text = $"❌ 載入會員名單失敗：{ex.Message}";
+            ErrorPanel.IsVisible = true;
+        }
+        finally
+        {
+            LoadingLabel.IsVisible = false;
+        }
+    }
+
+    private void OnRetryClicked(object sender, EventArgs e)
+    {
+        LoadMembersForDropdown();
+    }
+
+    private void SetSelectedMember(string memberId)
+    {
+        if (_allMembers != null && !string.IsNullOrEmpty(memberId))
+        {
+            var member = _filteredMembers.FirstOrDefault(m => m.Id == memberId);
+            if (member != null)
+            {
+                MemberPicker.SelectedItem = member;
+                _selectedMemberId = memberId;
+            }
+            else
+            {
+                // Member is not in current filtered list, clear search to show all
+                SearchEntry.Text = string.Empty;
+                _filteredMembers = new List<MemberDropdownOption>(_allMembers);
+                UpdatePickerItemsSource();
+                
+                member = _filteredMembers.FirstOrDefault(m => m.Id == memberId);
+                if (member != null)
+                {
+                    MemberPicker.SelectedItem = member;
+                    _selectedMemberId = memberId;
+                }
+            }
+        }
+    }
+
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        var searchText = e.NewTextValue?.Trim().ToLower() ?? string.Empty;
+        
+        if (string.IsNullOrEmpty(searchText))
+        {
+            _filteredMembers = new List<MemberDropdownOption>(_allMembers);
+        }
+        else
+        {
+            _filteredMembers = _allMembers.Where(m => 
+                m.Name.ToLower().Contains(searchText)).ToList();
+        }
+        
+        UpdatePickerItemsSource();
+        
+        // Clear selection if current selection is not in filtered results
+        if (_selectedMemberId != null && !_filteredMembers.Any(m => m.Id == _selectedMemberId))
+        {
+            MemberPicker.SelectedItem = null;
+            _selectedMemberId = string.Empty;
+        }
+    }
+
+    private void UpdatePickerItemsSource()
+    {
+        MemberPicker.ItemsSource = null;
+        MemberPicker.ItemsSource = _filteredMembers;
+    }
+
+    private void OnMemberPickerSelectedIndexChanged(object sender, EventArgs e)
+    {
+        var picker = sender as Picker;
+        if (picker?.SelectedItem is MemberDropdownOption selected)
+        {
+            _selectedMemberId = selected.Id;
+        }
+        else
+        {
+            _selectedMemberId = string.Empty;
         }
     }
 
@@ -90,12 +205,12 @@ public partial class SessionDetailPage : ContentPage
 
     private async void OnEnrollClicked(object sender, EventArgs e)
     {
-        var memberId = MemberIdEntry.Text?.Trim();
+        var memberId = _selectedMemberId?.Trim();
         
         if (string.IsNullOrWhiteSpace(memberId))
         {
             EnrollmentResultLabel.TextColor = Colors.Red;
-            EnrollmentResultLabel.Text = "⚠️ 請輸入會員 ID";
+            EnrollmentResultLabel.Text = "⚠️ 請選擇會員";
             return;
         }
 
@@ -112,8 +227,9 @@ public partial class SessionDetailPage : ContentPage
                 // Update the session info
                 await RefreshSessionInfo();
                 
-                // Clear the input
-                MemberIdEntry.Text = "";
+                // Clear the selection
+                MemberPicker.SelectedItem = null;
+                _selectedMemberId = string.Empty;
             }
             else
             {
@@ -150,12 +266,12 @@ public partial class SessionDetailPage : ContentPage
 
     private async void OnCancelEnrollmentClicked(object sender, EventArgs e)
     {
-        var memberId = MemberIdEntry.Text?.Trim();
+        var memberId = _selectedMemberId?.Trim();
         
         if (string.IsNullOrWhiteSpace(memberId))
         {
             EnrollmentResultLabel.TextColor = Colors.Red;
-            EnrollmentResultLabel.Text = "⚠️ 請輸入會員 ID";
+            EnrollmentResultLabel.Text = "⚠️ 請選擇會員";
             return;
         }
 
@@ -172,8 +288,9 @@ public partial class SessionDetailPage : ContentPage
                 // Update the session info
                 await RefreshSessionInfo();
                 
-                // Clear the input
-                MemberIdEntry.Text = "";
+                // Clear the selection
+                MemberPicker.SelectedItem = null;
+                _selectedMemberId = string.Empty;
             }
             else
             {
