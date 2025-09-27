@@ -13,6 +13,8 @@ public partial class SessionDetailPage : ContentPage
     private List<MemberDropdownOption> _allMembers = new List<MemberDropdownOption>();
     private List<MemberDropdownOption> _filteredMembers = new List<MemberDropdownOption>();
     private string _selectedMemberId = string.Empty;
+    private List<EnrolledMember> _enrolledMembers = new List<EnrolledMember>();
+    private List<EnrolledMember> _filteredEnrolledMembers = new List<EnrolledMember>();
 
     public class EnrollmentRequest
     {
@@ -32,6 +34,20 @@ public partial class SessionDetailPage : ContentPage
         public string Name { get; set; }
     }
 
+    public class EnrolledMember
+    {
+        public string MemberId { get; set; }
+        public string Name { get; set; }
+        public DateTime EnrolledAt { get; set; }
+    }
+
+    public class EnrolledMembersResponse
+    {
+        public string SessionId { get; set; }
+        public int TotalCount { get; set; }
+        public List<EnrolledMember> Members { get; set; } = new List<EnrolledMember>();
+    }
+
     public SessionDetailPage(SessionsListPage.SessionOption session)
     {
         InitializeComponent();
@@ -39,6 +55,7 @@ public partial class SessionDetailPage : ContentPage
         BindingContext = session;
         LoadMembers(session.TeamId);
         LoadMembersForDropdown();
+        LoadEnrolledMembers();
     }
 
     private async void LoadMembers(string teamId)
@@ -98,6 +115,83 @@ public partial class SessionDetailPage : ContentPage
     private void OnRetryClicked(object sender, EventArgs e)
     {
         LoadMembersForDropdown();
+    }
+
+    private async void LoadEnrolledMembers()
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<EnrolledMembersResponse>($"api/sessions/{_session.SessionId}/enrolled-members");
+            if (response != null)
+            {
+                _enrolledMembers = response.Members;
+                _filteredEnrolledMembers = new List<EnrolledMember>(_enrolledMembers);
+                UpdateEnrolledMembersDisplay();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't show to user as this is not critical
+            System.Diagnostics.Debug.WriteLine($"❌ 載入已報名名單失敗：{ex.Message}");
+        }
+    }
+
+    private void UpdateEnrolledMembersDisplay()
+    {
+        EnrolledCountLabel.Text = $"已報名：{_enrolledMembers.Count} 人";
+        
+        if (_enrolledMembers.Count == 0)
+        {
+            EnrolledMembersCollection.IsVisible = false;
+            NoEnrolledMembersLabel.IsVisible = true;
+            EnrolledSearchEntry.IsVisible = false;
+        }
+        else
+        {
+            EnrolledMembersCollection.ItemsSource = _filteredEnrolledMembers;
+            EnrolledMembersCollection.IsVisible = true;
+            NoEnrolledMembersLabel.IsVisible = false;
+            
+            // Show search entry for large lists
+            EnrolledSearchEntry.IsVisible = _enrolledMembers.Count > 10;
+        }
+    }
+
+    private void OnRefreshEnrolledClicked(object sender, EventArgs e)
+    {
+        LoadEnrolledMembers();
+    }
+
+    private void OnEnrolledSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        var searchText = e.NewTextValue?.Trim().ToLower() ?? string.Empty;
+        
+        if (string.IsNullOrEmpty(searchText))
+        {
+            _filteredEnrolledMembers = new List<EnrolledMember>(_enrolledMembers);
+        }
+        else
+        {
+            _filteredEnrolledMembers = _enrolledMembers
+                .Where(m => m.Name.ToLower().Contains(searchText))
+                .ToList();
+        }
+        
+        EnrolledMembersCollection.ItemsSource = _filteredEnrolledMembers;
+    }
+
+    private void OnEnrolledMemberClicked(object sender, EventArgs e)
+    {
+        if (sender is Button button && button.CommandParameter is string memberId)
+        {
+            // Auto-select the member for cancellation
+            SetSelectedMember(memberId);
+            
+            // Show feedback to user
+            EnrollmentResultLabel.TextColor = Colors.Blue;
+            var memberName = _enrolledMembers.FirstOrDefault(m => m.MemberId == memberId)?.Name ?? "Unknown";
+            EnrollmentResultLabel.Text = $"已選擇 {memberName} 進行取消報名";
+        }
     }
 
     private void SetSelectedMember(string memberId)
@@ -318,9 +412,9 @@ public partial class SessionDetailPage : ContentPage
     {
         try
         {
-            // In a real implementation, we might want to refresh the session data
-            // from the server to get updated enrollment counts
-            // For now, we'll just show that the operation was successful
+            // Refresh the enrolled members list to show updated data
+            await Task.Delay(500); // Small delay to ensure server has processed the change
+            LoadEnrolledMembers();
         }
         catch (Exception ex)
         {

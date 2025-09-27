@@ -221,4 +221,69 @@ public class SessionsController : ControllerBase
          return StatusCode(500, new { error = "internal_error", message = $"Failed to cancel enrollment: {ex.Message}" });
       }
    }
+
+   [HttpGet("{sessionId}/enrolled-members")]
+   public async Task<IActionResult> GetEnrolledMembers(string sessionId)
+   {
+      try
+      {
+         // Validate session exists
+         var sessionRef = _db.Collection("class_sessions").Document(sessionId);
+         var sessionSnapshot = await sessionRef.GetSnapshotAsync();
+         
+         if (!sessionSnapshot.Exists)
+         {
+            return NotFound(new { error = "Session not found" });
+         }
+
+         var enrolledMembers = new List<object>();
+
+         // Get all enrollments for this session
+         var enrollmentsQuery = sessionRef.Collection("enrollments")
+            .WhereEqualTo("Status", "enrolled");
+         var enrollmentsSnapshot = await enrollmentsQuery.GetSnapshotAsync();
+
+         // For each enrollment, get the member details
+         foreach (var enrollmentDoc in enrollmentsSnapshot.Documents)
+         {
+            var memberId = enrollmentDoc.GetValue<string>("MemberId");
+            
+            // Get member details
+            var memberRef = _db.Collection("members").Document(memberId);
+            var memberSnapshot = await memberRef.GetSnapshotAsync();
+            
+            if (memberSnapshot.Exists)
+            {
+               var memberName = memberSnapshot.ContainsField("Name") 
+                  ? memberSnapshot.GetValue<string>("Name") 
+                  : "Unknown Member";
+               
+               enrolledMembers.Add(new
+               {
+                  MemberId = memberId,
+                  Name = memberName,
+                  EnrolledAt = enrollmentDoc.ContainsField("CreatedAt") 
+                     ? enrollmentDoc.GetValue<Timestamp>("CreatedAt").ToDateTime()
+                     : DateTime.MinValue
+               });
+            }
+         }
+
+         // Sort by name ascending
+         var sortedMembers = enrolledMembers
+            .OrderBy(m => ((dynamic)m).Name)
+            .ToList();
+
+         return Ok(new 
+         { 
+            sessionId = sessionId,
+            totalCount = sortedMembers.Count,
+            members = sortedMembers 
+         });
+      }
+      catch (Exception ex)
+      {
+         return StatusCode(500, new { error = "internal_error", message = $"Failed to get enrolled members: {ex.Message}" });
+      }
+   }
 }

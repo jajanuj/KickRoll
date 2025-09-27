@@ -56,6 +56,53 @@
 
             <Label x:Name="EnrollmentResultLabel" TextColor="Blue" />
 
+            <!-- Enrolled Members Section -->
+            <Label Text="--- 已報名名單 ---" FontSize="20" FontAttributes="Bold" />
+            
+            <HorizontalStackLayout Spacing="10">
+                <Label x:Name="EnrolledCountLabel" 
+                       Text="已報名：0 人" 
+                       FontAttributes="Bold" 
+                       TextColor="Green" />
+                <Button x:Name="RefreshEnrolledButton" 
+                        Text="🔄 刷新" 
+                        FontSize="12" 
+                        Padding="5"
+                        Clicked="OnRefreshEnrolledClicked" />
+            </HorizontalStackLayout>
+
+            <Entry x:Name="EnrolledSearchEntry" 
+                   Placeholder="搜尋已報名成員..." 
+                   TextChanged="OnEnrolledSearchTextChanged" 
+                   IsVisible="False" />
+
+            <CollectionView x:Name="EnrolledMembersCollection"
+                            SelectionMode="None"
+                            IsVisible="False">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Button Text="{Binding Name}"
+                                BackgroundColor="LightGray"
+                                TextColor="Black"
+                                Margin="2"
+                                Padding="10,5"
+                                FontSize="14"
+                                Clicked="OnEnrolledMemberClicked">
+                            <Button.CommandParameter>
+                                <Binding Path="MemberId" />
+                            </Button.CommandParameter>
+                        </Button>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label x:Name="NoEnrolledMembersLabel"
+                   Text="目前沒有成員報名"
+                   TextColor="Gray"
+                   FontAttributes="Italic"
+                   HorizontalOptions="Center"
+                   IsVisible="False" />
+
             <Label Text="📌 狀態：" FontAttributes="Bold"/>
             <Label Text="{Binding Status}" TextColor="Green"/>
 
