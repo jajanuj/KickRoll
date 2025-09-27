@@ -152,6 +152,8 @@ public partial class MemberEnrollmentsPage : ContentPage
                     
                     ResultLabel.TextColor = Colors.Green;
                     ResultLabel.Text = $"載入成功，共 {enrollments.Count} 筆報名紀錄";
+                    
+                    System.Diagnostics.Debug.WriteLine($"Successfully loaded {enrollments.Count} enrollment records");
                 }
                 else
                 {
@@ -226,8 +228,15 @@ public partial class MemberEnrollmentsPage : ContentPage
             ResultLabel.TextColor = Colors.Red;
             ResultLabel.Text = $"❌ 載入報名紀錄失敗：{ex.Message}";
             
-            // Debug the full exception
+            // Debug the full exception with improved handling for IO exceptions
             System.Diagnostics.Debug.WriteLine($"Exception loading enrollments: {ex}");
+            
+            // Special handling for IOException that was observed in the logs
+            if (ex is System.IO.IOException ioEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"IO Exception details: {ioEx}");
+                ResultLabel.Text = $"❌ 網路連線中斷，請重試：{ioEx.Message}";
+            }
         }
     }
 

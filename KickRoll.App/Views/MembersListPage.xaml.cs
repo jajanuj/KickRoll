@@ -20,6 +20,10 @@ public partial class MembersListPage : ContentPage
 
       [JsonPropertyName("status")]
       public string Status { get; set; }
+
+      // 新增 TeamNames 屬性修復綁定警告
+      [JsonPropertyName("teamNames")]
+      public string TeamNames { get; set; } = "(未分配隊伍)";
    }
 
    public MembersListPage()
