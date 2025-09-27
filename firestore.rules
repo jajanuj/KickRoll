@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+    
+    function hasRole(role) { 
+      return isSignedIn() && request.auth.token.role == role; 
+    }
+    
+    function isActiveUser() {
+      return isSignedIn() && 
+             request.auth.token.status == "Active" && 
+             request.auth.token.email_verified == true;
+    }
+    
+    function isUserOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Users collection - core authentication data
+    match /users/{userId} {
+      // Users can read their own data, admins can read all
+      allow read: if isUserOwner(userId) || hasRole("Admin");
+      
+      // Only admins can write user documents (for role/status changes)
+      allow write: if hasRole("Admin");
+    }
+    
+    // Audit logs - only admins can read
+    match /auditLogs/{logId} {
+      allow read: if hasRole("Admin");
+      allow write: if false; // Only server-side writes via Admin SDK
+    }
+    
+    // Members collection - existing member management
+    match /members/{memberId} {
+      allow read: if isActiveUser() && (hasRole("Admin") || hasRole("Coach"));
+      allow write: if hasRole("Admin");
+    }
+    
+    // Teams collection 
+    match /teams/{teamId} {
+      allow read: if isActiveUser();
+      allow write: if hasRole("Admin");
+    }
+    
+    // Class sessions
+    match /class_sessions/{sessionId} {
+      allow read: if isActiveUser();
+      allow write: if hasRole("Admin") || hasRole("Coach");
+      
+      // Enrollments subcollection
+      match /enrollments/{enrollmentId} {
+        // Members can read/write their own enrollments, coaches can manage their class enrollments
+        allow read: if isActiveUser() && 
+                   (isUserOwner(enrollmentId) || 
+                    hasRole("Admin") || 
+                    (hasRole("Coach") && isCoachOfSession()));
+        
+        allow create: if isActiveUser() && isUserOwner(enrollmentId);
+        allow update, delete: if isActiveUser() && 
+                              (isUserOwner(enrollmentId) || 
+                               hasRole("Admin") || 
+                               (hasRole("Coach") && isCoachOfSession()));
+      }
+    }
+    
+    // Helper function to check if coach owns the session
+    function isCoachOfSession() {
+      return hasRole("Coach") && 
+             request.auth.uid in get(/databases/$(database)/documents/class_sessions/$(sessionId)).data.CoachIds;
+    }
+    
+    // Attendance records
+    match /attendances/{attendanceId} {
+      allow read: if isActiveUser() && (hasRole("Admin") || hasRole("Coach"));
+      allow create, update: if hasRole("Coach") || hasRole("Admin");
+      allow delete: if hasRole("Admin");
+    }
+    
+    // Member packages/plans
+    match /member_packages/{packageId} {
+      allow read: if isActiveUser() && (hasRole("Admin") || hasRole("Coach"));
+      allow write: if hasRole("Admin");
+    }
+    
+    // Member plans (nested under members)
+    match /members/{memberId}/plans/{planId} {
+      allow read: if isActiveUser() && 
+                 (isUserOwner(memberId) || hasRole("Admin") || hasRole("Coach"));
+      allow write: if hasRole("Admin") || hasRole("Coach");
+    }
+    
+    // Deduction records (system-generated)
+    match /deductions/{deductionId} {
+      allow read: if hasRole("Admin");
+      allow write: if hasRole("Admin") || request.auth.token.role == "function";
+    }
+    
+    // Payment records
+    match /payments/{paymentId} {
+      allow read: if isActiveUser() && (hasRole("Admin") || hasRole("Coach"));
+      allow create, update: if hasRole("Admin") || hasRole("Coach");
+      allow delete: if hasRole("Admin");
+    }
+    
+    // Enrollments (if using centralized collection)
+    match /enrollments/{enrollmentId} {
+      allow read: if isActiveUser() && 
+                 (resource.data.MemberId == request.auth.uid || 
+                  hasRole("Admin") || 
+                  hasRole("Coach"));
+      
+      allow create: if isActiveUser() && resource.data.MemberId == request.auth.uid;
+      
+      allow update, delete: if isActiveUser() && 
+                           (resource.data.MemberId == request.auth.uid || 
+                            hasRole("Admin") || 
+                            hasRole("Coach"));
+    }
+  }
+}
